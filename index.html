@@ -47,6 +47,53 @@ function build(){
  box(0,-.02,-4,15,.15,10,0x30241e,{solid:false,tex:'wood'});for(let z=-8.6;z<.5;z+=.62)box(0,.061,z,14.7,.012,.018,0x4a3528,{solid:false});for(let x=-7;x<=7;x+=3.5)box(x,3.86,-4,.09,.16,9.6,0x241815,{solid:false});
  // mansion rooms and furniture
 
+ // GRAPHICS PASS: layered architecture, realistic-looking trim and practical lights.
+ const trimMat=new THREE.MeshStandardMaterial({color:0x59402e,roughness:.78});
+ const darkTrimMat=new THREE.MeshStandardMaterial({color:0x201613,roughness:.92});
+ const brassMat=new THREE.MeshStandardMaterial({color:0x9b7947,metalness:.72,roughness:.3});
+ const dustyMat=new THREE.MeshStandardMaterial({color:0x716459,roughness:1});
+ const addDetailBox=(x,y,z,w,h,d,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m};
+ // Crown moulding and skirting boards around the ground-floor walls.
+ for(const z of [-8.45,.35]){addDetailBox(0,.18,z,14.7,.22,.12,trimMat);addDetailBox(0,3.72,z,14.7,.16,.14,darkTrimMat);addDetailBox(0,3.82,z,14.7,.055,.17,trimMat);}
+ for(const x of [-7.0,7.0]){addDetailBox(x,.18,-4,.12,.22,9.0,trimMat);addDetailBox(x,3.72,-4,.14,.16,9.0,darkTrimMat);}
+ // Decorative wall panels in the main hall.
+ for(const z of [-7.5,-5.6,-3.7,-1.8,.05]){addDetailBox(-7.0,1.75,z,.045,2.65,.95,trimMat);addDetailBox(7.0,1.75,z,.045,2.65,.95,trimMat);}
+ // Library reading nook: leather armchair, side table and a shaded reading lamp.
+ const leatherMat=new THREE.MeshStandardMaterial({color:0x4a211c,roughness:.83});
+ addDetailBox(-4.9,.62,-2.15,1.0,.32,.92,leatherMat);
+ addDetailBox(-4.9,1.02,-2.57,1.0,.9,.18,leatherMat);
+ addDetailBox(-5.35,.93,-2.12,.18,.55,.9,leatherMat);
+ addDetailBox(-4.45,.93,-2.12,.18,.55,.9,leatherMat);
+ addDetailBox(-4.0,.48,-2.2,.62,.1,.62,trimMat);
+ for(const x of [-4.23,-3.77])for(const z of [-2.43,-1.97])addDetailBox(x,.23,z,.07,.45,.07,darkTrimMat);
+ addDetailBox(-4.0,.82,-2.2,.055,.62,.055,brassMat);
+ addDetailBox(-4.0,1.15,-2.2,.32,.055,.32,brassMat);
+ const lampShade=new THREE.Mesh(new THREE.CylinderGeometry(.2,.3,.25,16),new THREE.MeshStandardMaterial({color:0xc0a078,roughness:.85,side:THREE.DoubleSide}));
+ lampShade.position.set(-4,1.34,-2.2);scene.add(lampShade);
+ const readingLight=light(-4,1.28,-2.2,0xffbd79,.65,4);flickerLights.push({light:readingLight,base:.65});
+ // Study desk dressing: writing pad, inkwell, paper stack and desk lamp.
+ addDetailBox(-.95,.98,-6.0,1.55,.055,.78,trimMat);
+ addDetailBox(-1.0,1.018,-6.0,.72,.018,.48,dustyMat);
+ for(let i=0;i<3;i++)addDetailBox(-.65+i*.025,1.04+i*.008,-6.05,.32,.012,.24,new THREE.MeshStandardMaterial({color:[0xcfc2a9,0xb9ab91,0xd9ccb4][i],roughness:1}));
+ const ink=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,.12,12),new THREE.MeshStandardMaterial({color:0x171b20,roughness:.25,metalness:.2}));ink.position.set(-1.35,1.1,-5.85);scene.add(ink);
+ addDetailBox(-1.55,1.17,-6.15,.08,.28,.08,brassMat);
+ const deskGlow=light(-1.55,1.25,-6.15,0xffbd79,.45,3);flickerLights.push({light:deskGlow,base:.45});
+ // Bedroom dressing: bedside cabinets, rumpled-looking layered blankets and wall sconces.
+ for(const x of [-5.25,5.2]){
+  addDetailBox(x,4.83,-4.7,.58,.58,.48,trimMat);
+  addDetailBox(x,5.14,-4.7,.62,.07,.52,darkTrimMat);
+  addDetailBox(x,5.28,-4.7,.34,.12,.28,new THREE.MeshStandardMaterial({color:0x9c8d79,roughness:.7}));
+  const sconce=light(x,6.8,-5.1,0xffb36b,.35,3);flickerLights.push({light:sconce,base:.35});
+  addDetailBox(x,6.65,-5.1,.16,.32,.12,brassMat);
+ }
+ addDetailBox(-5.25,5.08,-5.8,2.15,.12,2.65,new THREE.MeshStandardMaterial({color:0x55404a,roughness:1}));
+ addDetailBox(-5.25,5.15,-5.8,1.72,.08,2.15,new THREE.MeshStandardMaterial({color:0x8b7568,roughness:1}));
+ // Basement pipework, support posts and a dim maintenance lamp for readable silhouettes.
+ for(const x of [-3.8,3.8]){addDetailBox(x,-1.15,-7.8,.16,3.5,.16,darkTrimMat);addDetailBox(x,-2.8,-7.8,.42,.12,.42,trimMat);}
+ for(let z=-7.6;z<-.5;z+=2.2)addDetailBox(6.6,-.35,z,.12,.12,.12,brassMat);
+ const cellarLamp=light(0,-.05,-4.0,0xffb66c,.48,6);flickerLights.push({light:cellarLamp,base:.48});
+ // Slightly soften rough flat black look of the existing shadow figure using layered silhouette shapes.
+ if(entity){const cloak=new THREE.Mesh(new THREE.ConeGeometry(.56,1.65,9),new THREE.MeshStandardMaterial({color:0x080909,roughness:.96}));cloak.position.y=.92;entity.add(cloak);const shoulder=new THREE.Mesh(new THREE.SphereGeometry(.47,12,8),new THREE.MeshStandardMaterial({color:0x090a0a,roughness:1}));shoulder.scale.set(1,.48,.65);shoulder.position.y=1.48;entity.add(shoulder);}
  // ROOM 1 — LIBRARY: shelves, scattered books and a whispering portrait
  for(const z of [-6.6,-4.9,-3.2]){
   box(-6.35,1.35,z,.35,2.7,1.25,0x39251c,{tex:'wood'});
