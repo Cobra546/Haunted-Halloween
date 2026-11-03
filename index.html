@@ -17,7 +17,7 @@
 @media(orientation:portrait) and (max-width:900px){#rotateBlock{display:flex}}
 </style>
 </head>
-<body>\n<div id="rotateBlock"><div class="rotateCard"><span class="phone">📱</span><h2>ROTATE YOUR DEVICE</h2><p>THE CURSED is designed for landscape mode.<br>Please turn your phone sideways to enter the haunted world.</p><small>Game access unlocks automatically in landscape.</small></div></div>
+<body>\n<div id="rotateBlock"><div class="rotateCard"><span class="phone">📱</span><h2>ROTATE YOUR DEVICE</h2><p>THE CURSED is designed for landscape mode.<br>Please turn your phone sideways to enter the haunted world.</p><button id="tryLandscape">ENTER LANDSCAPE</button><br><small>If your browser cannot rotate automatically, turn your phone sideways.</small></div></div>
 <div id="intro"><div class="card"><div class="eyebrow">A first-person Halloween horror experience</div><h1>THE CURSED</h1><p><b>HALLOWEEN ESCAPE · 11:59 PM</b></p><p>You wake outside an abandoned mansion. Find the brass key, uncover the computer password and reach the town gate before midnight. Something is watching you. It can hurt you — but it cannot kill you.</p><p class="hint">Desktop: WASD move · Mouse look · Shift sprint · F flashlight · E interact · Esc pause<br>Mobile: left joystick move · drag right side to look · buttons to interact</p><button id="start">ENTER IF YOU DARE</button><p class="hint">Headphones optional · Sound and visual intensity can be adjusted in pause menu.</p></div></div>
 <div id="pause" style="display:none"><div class="card"><div class="eyebrow">Take a breath</div><h2>PAUSED</h2><button id="resume">RESUME</button><button id="sound">SOUND: ON</button><button id="exit">RETURN TO TITLE</button></div></div>
 <div id="scare"><strong id="scareText">DON'T LOOK BACK</strong><p id="scareSub">Something moved in the dark.</p></div>
@@ -90,6 +90,13 @@ function update(dt){if(!started||paused)return;move(dt);if(flashOn&&battery>0){b
  const prompt=objects.some(o=>{const p=new THREE.Vector3();o.mesh.getWorldPosition(p);return o.mesh.visible&&p.distanceTo(camera.position)<2.8});$('prompt').textContent=prompt?'[ E ] INTERACT':'';renderer.render(scene,camera)}
 function loop(){requestAnimationFrame(loop);const dt=Math.min(clock?.getDelta()||0,.05);update(dt)}
 function isPortraitPhone(){return matchMedia('(max-width: 900px) and (orientation: portrait)').matches}
+async function forceLandscapeFromTap(){
+ try{
+  if(!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+  if(screen.orientation?.lock) await screen.orientation.lock('landscape');
+ }catch(e){/* Manual rotation prompt remains visible when locking is unsupported. */}
+ syncOrientation();
+}
 async function requestLandscape(){
  if(!isPortraitPhone() && screen.orientation?.lock){
   try{await screen.orientation.lock('landscape')}catch(e){}
@@ -105,7 +112,7 @@ function syncOrientation(){
 async function start(){if(started||isPortraitPhone())return;await requestLandscape();if(isPortraitPhone())return;started=true;$('intro').style.display='none';$('pause').style.display='none';if(innerWidth>700)controls.lock();tone(180,.12);msg('Find the brass key. The front door is locked.')}
 function pause(){if(!started)return;paused=true;controls.unlock();$('pause').style.display='flex'}
 function resume(){if(isPortraitPhone())return;paused=false;$('pause').style.display='none';if(innerWidth>700)controls.lock()}
-$('start').onclick=()=>start();$('resume').onclick=()=>resume();$('exit').onclick=()=>location.reload();$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='SOUND: '+(soundOn?'ON':'OFF')};
+$('start').onclick=()=>start();$('tryLandscape').onclick=()=>forceLandscapeFromTap();$('resume').onclick=()=>resume();$('exit').onclick=()=>location.reload();$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='SOUND: '+(soundOn?'ON':'OFF')};
 document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')interact();if(e.code==='KeyF'){flashOn=!flashOn;if(flashOn&&battery<2)msg('The flashlight battery is empty.')}if(e.code==='Escape'&&started&&!paused)pause()});document.addEventListener('keyup',e=>keys[e.code]=false);
 $('mInteract').onclick=interact;$('mLight').onclick=()=>flashOn=!flashOn;$('mRun').ontouchstart=e=>{runTouch=true};$('mRun').ontouchend=e=>{runTouch=false};$('mPause').onclick=()=>paused?resume():pause();
 const stick=$('stick'),nub=$('nub');stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);stick.onpointermove=ev=>{const r=stick.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.max(1,Math.hypot(dx,dy));joy.x=Math.max(-1,Math.min(1,dx/m));joy.y=Math.max(-1,Math.min(1,dy/m));nub.style.transform='translate('+joy.x*34+'px,'+joy.y*34+'px)'};});stick.addEventListener('pointerup',()=>{joy={x:0,y:0};nub.style.transform='translate(0,0)';stick.onpointermove=null});
