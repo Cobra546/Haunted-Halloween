@@ -25,30 +25,30 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 const $=id=>document.getElementById(id);
 let scene,camera,renderer,controls,clock,flash,entity,entityLight;let eyeHeight=1.65,currentFloor='GROUND FLOOR';let started=false,paused=false,inventoryOpen=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=1680,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,doorLocks=[false,false,false,false],hasPickaxe=false,hasBasementKey=false,secretPassageOpen=false,near=null;
-const keys={},objects=[],colliders=[],walls=[],flickerLights=[];let audioCtx=null;
-function box(x,y,z,w,h,d,color,opts={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:opts.rough??.9,metalness:opts.metal??0}));m.position.set(x,y,z);scene.add(m);if(opts.solid!==false)colliders.push({x,y,h,z,w,d});return m}
+const keys={},objects=[],colliders=[],walls=[],flickerLights=[];let audioCtx=null;let woodTexture,stoneTexture;
+function makeSurfaceTexture(base,grain,kind='wood'){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);for(let i=0;i<kind==='wood'?90:650;i++){const x=Math.random()*256,y=Math.random()*256;g.strokeStyle=grain+(Math.random()*.22).toFixed(2)+')';g.globalAlpha=kind==='wood'?.25:.1;g.lineWidth=kind==='wood'?1+Math.random()*2:1;g.beginPath();if(kind==='wood'){g.moveTo(x,y);g.bezierCurveTo(x+18,y-3,x+35,y+4,x+70,y+Math.random()*3);}else{g.moveTo(x,y);g.lineTo(x+Math.random()*2,y+Math.random()*2);}g.stroke();}g.globalAlpha=1;const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);return t}\nfunction box(x,y,z,w,h,d,color,opts={}){const map=opts.tex==='wood'?woodTexture:opts.tex==='stone'?stoneTexture:null;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,map,roughness:opts.rough??.9,metalness:opts.metal??0}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);if(opts.solid!==false)colliders.push({x,y,h,z,w,d});return m}
 function light(x,y,z,color,intensity,range){const l=new THREE.PointLight(color,intensity,range);l.position.set(x,y,z);scene.add(l);return l}
 function labelObj(mesh,name,action){objects.push({mesh,name,action})}
 function build(){
- scene=new THREE.Scene();scene.background=new THREE.Color(0x050607);scene.fog=new THREE.FogExp2(0x08090b,.035);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x050607);scene.fog=new THREE.FogExp2(0x08090b,.035);woodTexture=makeSurfaceTexture('#493024','rgba(17,8,4,','wood');stoneTexture=makeSurfaceTexture('#292522','rgba(5,5,5,','stone');
  camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,90);camera.position.set(0,1.65,8);
  renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0x667080,0x17100d,.45));
- const moon=light(-5,9,-8,0x6684aa,2,35);
+ const moon=light(-5,9,-8,0x6684aa,2,35);moon.castShadow=true;moon.shadow.mapSize.set(768,768);
  // exterior grounds and moonlit path
- box(0,-.18,0,60,.3,60,0x171916,{solid:false});
+ box(0,-.18,0,60,.3,60,0x171916,{solid:false,tex:'stone'});
  for(let i=0;i<18;i++){const t=new THREE.Group();t.position.set((Math.random()-.5)*38,0,-Math.random()*30-5);const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,2.5,6),new THREE.MeshStandardMaterial({color:0x211b17}));trunk.position.y=1.25;t.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.5,4,7),new THREE.MeshStandardMaterial({color:0x101a14}));crown.position.y=3.5;t.add(crown);scene.add(t)}
  // mansion structure
- box(-4.55,2,-9,6.9,4,1,0x211b1a);box(4.55,2,-9,6.9,4,1,0x211b1a);box(0,3.85,-9,2.2,.3,1,0x211b1a);box(-7.5,2,-4,1,4,10,0x211b1a);box(7.5,2,-1.35,1,4,3.3,0x211b1a);box(7.5,2,-7.65,1,4,2.7,0x211b1a);box(0,4.1,-4,16,.4,10,0x191313);
+ box(-4.55,2,-9,6.9,4,1,0x211b1a);box(4.55,2,-9,6.9,4,1,0x211b1a);box(0,3.85,-9,2.2,.3,1,0x211b1a);box(-7.5,2,-4,1,4,10,0x211b1a);box(7.5,2,-1.35,1,4,3.3,0x211b1a);box(7.5,2,-7.65,1,4,2.7,0x211b1a);box(0,4.1,-4,16,.4,10,0x191313,{tex:'wood'});
  box(-4,1,-4,3,2,.35,0x100d0d);box(4,1,-4,3,2,.35,0x100d0d);
  // room partitions / hallway
  box(-3,1.5,-2, .25,3,4,0x29201d);box(3,1.5,-2,.25,3,4,0x29201d);
- box(0,-.02,-4,15,.15,10,0x30241e,{solid:false});for(let z=-8.6;z<.5;z+=.62)box(0,.061,z,14.7,.012,.018,0x4a3528,{solid:false});for(let x=-7;x<=7;x+=3.5)box(x,3.86,-4,.09,.16,9.6,0x241815,{solid:false});
+ box(0,-.02,-4,15,.15,10,0x30241e,{solid:false,tex:'wood'});for(let z=-8.6;z<.5;z+=.62)box(0,.061,z,14.7,.012,.018,0x4a3528,{solid:false});for(let x=-7;x<=7;x+=3.5)box(x,3.86,-4,.09,.16,9.6,0x241815,{solid:false});
  // mansion rooms and furniture
 
  // ROOM 1 — LIBRARY: shelves, scattered books and a whispering portrait
  for(const z of [-6.6,-4.9,-3.2]){
-  box(-6.35,1.35,z,.35,2.7,1.25,0x39251c);
+  box(-6.35,1.35,z,.35,2.7,1.25,0x39251c,{tex:'wood'});
   for(let row=0;row<4;row++)box(-6.12,.45+row*.48,z,.12,.12,1.05,[0x6b2922,0x8a663a,0x314a43,0x54406c][(row+Math.floor(z*2))&3],{solid:false});
  }
  box(-5.25,.55,-5.6,1.1,.12,1.1,0x39251c);box(-5.25,.28,-5.6,.12,.55,.12,0x211712);
@@ -57,7 +57,7 @@ function build(){
  const book=box(-4.7,.82,-4.2,.32,.08,.25,0x8a3024,{solid:false});
  labelObj(book,'Library journal',()=>msg('Journal: “Lock I: two dozen, then one, then eleven.”'));
  // ROOM 2 — DINING ROOM: table, chairs and radio
- box(5.1,.8,-5.4,3.5,.18,1.45,0x4b2d1d);
+ box(5.1,.8,-5.4,3.5,.18,1.45,0x4b2d1d,{tex:'wood'});
  for(const x of [3.8,6.4])for(const z of [-6,-4.8])box(x,.42,z,.16,.8,.16,0x2b1a14);
  for(const x of [3.5,6.7]){box(x,.55,-5.4,.65,.12,.65,0x3a241b);box(x,.95,-5.75,.65,.9,.12,0x3a241b);}
  const radio=box(5.1,1.35,-5.4,.7,.42,.4,0x171b1b,{solid:false});
@@ -73,7 +73,7 @@ function build(){
  const wardrobe=box(-5.2,1.35,-1.43,1.1,2.45,.08,0x513021,{solid:false});
  labelObj(wardrobe,'Old wardrobe',()=>msg('Inside hangs a child-sized coat. Its pocket says: “Lock IV: the fifth month, then the 27th day. THE WATCHER CANNOT CROSS THE LIGHT.”'));const pick=box(-5.2,.38,-1.05,.42,.12,.18,0x6c6d70,{solid:false,metal:.7});labelObj(pick,'Old pickaxe',()=>{if(!hasPickaxe){hasPickaxe=true;items++;pick.visible=false;$('items').textContent=items;msg('Pickaxe collected. Find the cracked side window and break through to the forest.');}else msg('You already have the pickaxe.');});
  // ROOM 5 — MAIN HALL: grandfather clock and rug
- box(5.9,1.25,-1.7,.75,2.5,.55,0x3c251a);
+ box(5.9,1.25,-1.7,.75,2.5,.55,0x3c251a,{tex:'wood'});
  const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.22,20),new THREE.MeshStandardMaterial({color:0xd2b27a,emissive:0x241508}));
  clockFace.position.set(5.9,2.05,-1.405);scene.add(clockFace);
  labelObj(clockFace,'Grandfather clock',()=>{msg('The clock is frozen at 11:59. Lock II needs the hour, zero, and seventh bell.');tone(55,.7,'triangle');});
@@ -84,7 +84,7 @@ function build(){
  box(-5.25,4.85,-5.8,2.5,.35,3.1,0x38251e,{solid:false});box(-5.25,5.12,-7.05,2.55,.28,.35,0x5a4035,{solid:false});
  const upstairsMirror=box(-6.85,5.9,-4.7,.08,1.65,1.05,0x31414a,{solid:false,metal:.35});upstairsMirror.material.metalness=.65;labelObj(upstairsMirror,'Upstairs mirror',()=>{msg('Your reflection is half a second late. An inscription appears: THE WAY DOWN IS NOT THE WAY OUT.');fear=Math.min(100,fear+9);tone(72,.6,'sine');});
  box(-3.9,4.95,-7,.65,.65,.65,0x39251d,{solid:false});const diary=box(-3.9,5.31,-7,.32,.06,.22,0x5a1f1b,{solid:false});labelObj(diary,'Bedroom diary',()=>msg('Diary: I heard footsteps beneath the floor. The hidden latch is behind the cellar shelves.'));
- box(5.2,5.35,-6.7,1.2,1.75,.65,0x302019,{solid:false});const keepsake=box(4.1,4.95,-4.2,.48,.28,.38,0x80613b,{solid:false,metal:.55});labelObj(keepsake,'Keepsake box',()=>msg(hasBasementKey?'The velvet lining hides a note: THE PASSAGE OPENS ONLY WHEN THE HOUSE IS QUIET.':'A tiny keyhole. The key may be somewhere below the house.'));
+ box(5.2,5.35,-6.7,1.2,1.75,.65,0x302019,{solid:false});const keepsake=box(4.1,4.95,-4.2,.48,.28,.38,0x80613b,{solid:false,metal:.55});labelObj(keepsake,'Keepsake box',()=>msg(hasBasementKey?'The velvet lining hides a note: THE PASSAGE OPENS ONLY WHEN THE HOUSE IS QUIET.':'A tiny keyhole. The iron key is hidden somewhere in this upstairs bedroom.'));
  for(let i=0;i<13;i++)box(0,.18+i*.34,-1.05-i*.38,1.12,.24,.58,0x493024,{solid:false});box(-.62,2.25,-3.4,.12,4.2,.12,0x39251c,{solid:false});box(.62,2.25,-3.4,.12,4.2,.12,0x39251c,{solid:false});const stairMarker=box(0,1.05,-2.4,.7,.12,.7,0x6d4930,{solid:false});labelObj(stairMarker,'Grand staircase',()=>{if(currentFloor==='GROUND FLOOR'){currentFloor='UPPER FLOOR';eyeHeight=6.15;camera.position.set(0,eyeHeight,-2.4);stairMarker.position.y=5.55;msg('You climb the creaking stairs. Upstairs, every door is open.');}else if(currentFloor==='UPPER FLOOR'){currentFloor='GROUND FLOOR';eyeHeight=1.65;camera.position.set(0,eyeHeight,-2.4);stairMarker.position.y=1.05;msg('You return to the main hall.');}else msg('The staircase is far above you.');});
  // BASEMENT cellar level
  box(0,-3.25,-4,14.5,.18,9.5,0x211c19,{solid:false});box(-7.15,-1.1,-6.55,.35,4,4.4,0x211b1a);box(-7.15,-1.1,.0,.35,4,1.5,0x211b1a);box(7.15,-1.1,-4,.35,4,9.5,0x211b1a);box(0,-1.1,-9,.35,4,.35,0x211b1a);box(0,-1.1,.7,14.5,4,.35,0x211b1a);
@@ -92,7 +92,7 @@ function build(){
  const fuseBox=box(6.65,-1.3,-6.5,.18,1.25,.85,0x343536,{solid:false,metal:.6});labelObj(fuseBox,'Basement fuse cabinet',()=>{msg('The fuse cabinet hums. One switch is missing.');tone(48,.8,'triangle');});
  box(-5.8,-1.55,-2,.3,2.5,1.8,0x39251c,{solid:false});const secretLatch=box(-5.58,-1.35,-2,.08,.28,.22,0xb38a4c,{solid:false,metal:.8});labelObj(secretLatch,'Hidden cellar latch',()=>{if(!hasBasementKey){msg('A concealed latch. It needs a small iron key. Search the upstairs bedroom.');return;}if(!secretPassageOpen){secretPassageOpen=true;passageDoor.rotation.y=Math.PI/2;msg('A hidden section of shelving slides aside. A narrow passage opens beneath the mansion.');tone(62,.9,'triangle');}else msg('The secret passage is open. Cold air drifts through it.');});
  const basementKey=box(4.8,5.45,-4.7,.22,.08,.12,0xaaa7a0,{solid:false,metal:.85});labelObj(basementKey,'Iron cellar key',()=>{if(!hasBasementKey){hasBasementKey=true;items++;basementKey.visible=false;$('items').textContent=items;msg('Iron cellar key collected. Something knocks from behind the shelves.');}else msg('You already have the iron key.');});
- const hatch=box(0,1.2,-6.85,.85,.12,.85,0x4a3022,{solid:false});labelObj(hatch,'Cellar stair hatch',()=>{if(currentFloor==='GROUND FLOOR'){currentFloor='BASEMENT';eyeHeight=-1.55;camera.position.set(0,eyeHeight,-6.4);msg('You descend into the cold cellar. The hatch shuts above you.');}else if(currentFloor==='BASEMENT'){currentFloor='GROUND FLOOR';eyeHeight=1.65;camera.position.set(0,eyeHeight,-6.1);msg('You climb back into the study.');}else msg('The cellar hatch is on the floor below.');});
+ const hatch=box(0,.12,-6.85,.85,.12,.85,0x4a3022,{solid:false,tex:'wood'});labelObj(hatch,'Cellar stair hatch',()=>{if(currentFloor==='GROUND FLOOR'){currentFloor='BASEMENT';eyeHeight=-1.55;camera.position.set(0,eyeHeight,-6.4);msg('You descend into the cold cellar. The hatch shuts above you.');}else if(currentFloor==='BASEMENT'){currentFloor='GROUND FLOOR';eyeHeight=1.65;camera.position.set(0,eyeHeight,-6.1);msg('You climb back into the study.');}else msg('The cellar hatch is on the floor below.');});
  const passageDoor=box(-7.02,-1.2,-2,.08,2.4,1.25,0x211714,{solid:false});labelObj(passageDoor,'Secret passage door',()=>{if(secretPassageOpen){passageDoor.visible=false;camera.position.set(-8.1,eyeHeight,-2);msg('You squeeze into the narrow passage beneath the mansion.');}else msg('A seamless wall. There must be a hidden latch nearby.');});
  box(-9.8,-3.25,-2,5.2,.18,1.5,0x211c19,{solid:false});box(-9.8,-1.1,-1.15,5.2,4,.18,0x211b1a);box(-9.8,-1.1,-2.85,5.2,4,.18,0x211b1a);const secretExit=box(-12.25,-1.35,-2,.12,2.2,1.2,0x30251f,{solid:false});labelObj(secretExit,'Secret passage exit',()=>{if(secretPassageOpen){currentFloor='GROUND FLOOR';eyeHeight=1.65;camera.position.set(-10.5,eyeHeight,-2);msg('You emerge from the hidden tunnel into the forest.');}else msg('The tunnel is blocked by a hidden mechanism.');});
  // doors and set dressing
@@ -108,7 +108,7 @@ function build(){
  for(const z of [-7,-3,1,5]){const l=light(0,2.8,z,0xff6b22,.55,7);const p=new THREE.Mesh(new THREE.SphereGeometry(.35,12,10),new THREE.MeshStandardMaterial({color:0xb94b13,emissive:0x421000}));p.position.set(-5,.35,z);scene.add(p)}
  // forest exit gate
  box(0,1.7,-23,5,.25,.3,0x4a3022,{solid:false});box(-2.35,1.2,-23,.2,2.4,.3,0x4a3022);box(2.35,1.2,-23,.2,2.4,.3,0x4a3022);
- const townClue=box(-4,1.15,-20.5,1.1,.9,.08,0x46352a,{solid:false});labelObj(townClue,'Weathered town notice',()=>msg('A faded notice reads: “The town access code is the year the first house was built: 1927.”'));const gate=box(0,1.2,-23,4.5,2.3,.18,0x30251f,{solid:false});labelObj(gate,'Town gate keypad',()=>{if(!computerSolved){msg('The keypad is dead. Power the town gate from the forest computer first.');return;}const code=window.prompt('TOWN GATE\\nEnter the four-digit town access code:');if(code===null)return;if(code.trim()==='1927'){gateOpen=true;gate.rotation.y=1.2;msg('ACCESS ACCEPTED. The town gate creaks open.');$('goal').textContent='Reach the red beacon beyond the abandoned town';}else{msg('ACCESS DENIED. The keypad emits a low warning tone.');fear=Math.min(100,fear+6);tone(58,.35,'square');}});
+ const townClue=box(-4,1.15,-20.5,1.1,.9,.08,0x46352a,{solid:false});labelObj(townClue,'Weathered town notice',()=>msg('A faded notice reads: “The town access code is the year the first house was built: 1927.”'));const gate=box(0,1.2,-23,4.5,2.3,.18,0x30251f,{solid:false});const gateBlock={x:0,y:1.2,h:2.3,z:-23,w:4.5,d:.35};colliders.push(gateBlock);labelObj(gate,'Town gate keypad',()=>{if(!computerSolved){msg('The keypad is dead. Power the town gate from the forest computer first.');return;}const code=window.prompt('TOWN GATE\\nEnter the four-digit town access code:');if(code===null)return;if(code.trim()==='1927'){gateOpen=true;const gi=colliders.indexOf(gateBlock);if(gi>=0)colliders.splice(gi,1);gate.rotation.y=1.2;msg('ACCESS ACCEPTED. The town gate creaks open.');$('goal').textContent='Reach the red beacon beyond the abandoned town';}else{msg('ACCESS DENIED. The keypad emits a low warning tone.');fear=Math.min(100,fear+6);tone(58,.35,'square');}});
  // town silhouettes
  for(let i=0;i<5;i++){const x=(i-2)*5;box(x,2,-31,3.6,4,3,0x17191a,{solid:false});box(x,4.5,-31,4.2,1,3.5,0x211819,{solid:false});light(x,1.8,-29,0xff8a39,.4,5)}
  // town exit beacon
@@ -116,7 +116,7 @@ function build(){
  // entity shadow figure
  entity=new THREE.Group();const dark=new THREE.MeshStandardMaterial({color:0x030303,roughness:1});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.1,4,8),dark);body.position.y=1.05;entity.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,12,10),dark);head.position.y=1.95;entity.add(head);for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshBasicMaterial({color:0xff1710}));eye.position.set(x,2,-.29);entity.add(eye)}entity.position.set(7,0,-5);scene.add(entity);entity.visible=false;entityLight=light(0,0,0,0x8d1717,0,5);
  // flashlight
- flash=new THREE.SpotLight(0xffe4c4,5,22,Math.PI/7,.35,1.4);camera.add(flash);flash.position.set(0,0,0);flash.target.position.set(0,0,-1);camera.add(flash.target);scene.add(camera);
+ flash=new THREE.SpotLight(0xffe4c4,5,22,Math.PI/7,.35,1.4);flash.castShadow=true;flash.shadow.mapSize.set(512,512);camera.add(flash);flash.position.set(0,0,0);flash.target.position.set(0,0,-1);camera.add(flash.target);scene.add(camera);
  controls=new PointerLockControls(camera,document.body);clock=new THREE.Clock();
 }
 function msg(t){$('message').textContent=t;clearTimeout(msg.timer);msg.timer=setTimeout(()=>$('message').textContent='',3400)}
