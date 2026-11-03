@@ -1,27 +1,30 @@
 # THE CURSED — Halloween Escape
 
-A browser-based, first-person Halloween horror prototype built with Three.js.
+A mobile-friendly, first-person Halloween horror game built with Three.js.
 
-## Play locally
-Open `index.html` through a local web server (ES modules do not work reliably from `file://`). The Three.js modules load from jsDelivr, so an internet connection is required.
+## Play
+The game is designed for a browser. Open it through GitHub Pages or a local web server; ES modules do not work reliably from `file://`. Three.js loads from jsDelivr, so an internet connection is required.
 
 ## GitHub Pages
 1. Open **Settings → Pages**.
 2. Under **Build and deployment**, choose **Deploy from a branch**.
 3. Select branch **main** and folder **/(root)**, then Save.
-4. Wait for the Pages deployment. The game will be available at:
+4. Wait for the Pages deployment:
    https://cobra546.github.io/Haunted-Halloween/
 
 ## Controls
-- Desktop: WASD move, mouse look, Shift sprint, F flashlight, E interact, Esc pause.
-- Mobile: left joystick to move, drag the right side to look, on-screen buttons to interact, toggle flashlight, sprint and pause.
+- **Desktop:** WASD move, mouse look, Shift sprint, F flashlight, E interact, I inventory, Esc pause.
+- **Mobile:** left joystick to move, drag the right side to look, and use INTERACT / LIGHT / SPRINT / ITEMS / PAUSE.
 
-## Current prototype
-- First-person 3D mansion scene and forest approach.
-- Flashlight and mobile touch controls.
-- Brass key, note/password, computer terminal and town gate objectives.
-- Entity stalking/chase prototype, non-lethal injury slowdown, fear meter, random scare events and nightmare transitions.
-- One initial escape ending.
+## Current game features
+- First-person mansion, forest and abandoned town environments.
+- Ground floor, upstairs bedrooms, basement cellar and a hidden underground passage.
+- Two main mansion escape choices: solve four difficult coded locks or find the pickaxe and break the side window.
+- A hidden cellar route that requires finding the iron key upstairs and opening the concealed latch.
+- Four flashlight cells with seven minutes of use per cell (28 minutes total); battery drains only while the light is on.
+- Pocket inventory, clues, cursed forest computer and town gate objective.
+- A distant apparition that watches from far away and causes temporary in-game control glitches. It does not attack or kill the player.
+- Atmospheric lighting, flickering candles, fog, creaking-house effects, fear meter, jumpscares and nightmare sequences.
 
-## Notes
-This is the first playable foundation, not the finished full game. The forest/town are currently lightweight prototype environments; later updates can add richer rooms, puzzles, entity behaviours, sound design, save progress and additional endings. No graphic injury imagery is used.
+## Technical notes
+This is an evolving browser-game prototype. The mansion architecture and puzzles are implemented in the single `index.html` file. The visuals use procedural Three.js geometry and lighting rather than downloaded texture packs. The game has been syntax-checked, but still needs hands-on browser playtesting on desktop and Android before calling it fully polished.
