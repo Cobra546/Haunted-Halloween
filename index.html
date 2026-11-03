@@ -58,6 +58,68 @@ function build(){
  const book=box(-4.7,.82,-4.2,.32,.08,.25,0x8a3024,{solid:false});
  labelObj(book,'Library journal',()=>msg('Journal: “Lock I: two dozen, then one, then eleven.”'));
  // ROOM 2 — DINING ROOM: table, chairs and radio
+ // ROOM 2 — DINING ROOM: detailed visual showcase
+ // Richer materials and layered set dressing; all decorative meshes stay non-collidable.
+ const diningWood=new THREE.MeshStandardMaterial({color:0x5b3825,roughness:.62});
+ const darkOak=new THREE.MeshStandardMaterial({color:0x281811,roughness:.82});
+ const agedBrass=new THREE.MeshStandardMaterial({color:0x9b7440,metalness:.72,roughness:.32});
+ const dustyLinen=new THREE.MeshStandardMaterial({color:0x8a7865,roughness:1});
+ const porcelain=new THREE.MeshStandardMaterial({color:0xc9c1b2,roughness:.24});
+ const glassMat=new THREE.MeshPhysicalMaterial({color:0x9daeb0,roughness:.08,metalness:.12,transparent:true,opacity:.55});
+ const addCylinder=(x,y,z,rt,rb,h,mat,segments=16)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m};
+ const addSphere=(x,y,z,r,mat)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m};
+ // Patterned dining rug and floor border
+ const rug=box(5.1,.075,-5.4,4.7,.035,3.25,0x49302a,{solid:false});
+ rug.material=new THREE.MeshStandardMaterial({color:0x49302a,roughness:1});
+ box(5.1,.096,-5.4,4.42,.012,2.98,0x786044,{solid:false});
+ box(5.1,.105,-5.4,4.18,.012,2.74,0x382321,{solid:false});
+ // Heavy table top, linen runner and carved edge
+ box(5.1,.91,-5.4,3.72,.12,1.62,0x5a3826,{solid:false,tex:'wood'});
+ box(5.1,.982,-5.4,3.48,.025,1.39,0x95836d,{solid:false});
+ box(5.1,1.001,-5.4,1.05,.018,1.38,0x6d2922,{solid:false});
+ for(const x of [3.43,6.77])for(const z of [-6.08,-4.72]){
+  box(x,.47,z,.15,.88,.15,0x392318,{solid:false,tex:'wood'});
+  addCylinder(x,.18,z,.16,.18,.08,agedBrass,12);
+ }
+ // Four place settings: porcelain plates, bowls and metal cutlery
+ for(const x of [4.05,6.15])for(const z of [-5.92,-4.88]){
+  addCylinder(x,1.025,z,.28,.28,.035,porcelain,28);
+  addCylinder(x,1.05,z,.19,.19,.025,dustyLinen,28);
+  addCylinder(x,1.07,z,.115,.115,.018,porcelain,24);
+  addCylinder(x,1.13,z,.075,.09,.15,glassMat,12);
+  addCylinder(x+.34,1.045,z,.018,.018,.34,agedBrass,8);
+  addCylinder(x-.34,1.045,z,.018,.018,.34,agedBrass,8);
+  for(let k=0;k<3;k++)box(x-.43+k*.055,1.045,z-.12,.018,.012,.22,agedBrass,{solid:false});
+ }
+ // Upholstered chair backs and carved rails
+ for(const x of [3.65,6.55])for(const z of [-6.25,-4.55]){
+  box(x,.57,z,.72,.12,.72,0x463027,{solid:false});
+  box(x,.99,z+(z<-5?-.31:.31),.72,.88,.13,0x2d1c18,{solid:false});
+  box(x,.99,z+(z<-5?-.235:.235),.53,.65,.035,0x6d5140,{solid:false});
+  box(x,1.43,z+(z<-5?-.31:.31),.78,.09,.17,agedBrass,{solid:false});
+  for(const dx of [-.27,.27])box(x+dx,.36,z,.075,.72,.075,darkOak,{solid:false});
+ }
+ // Sideboard against the dining-room wall with drawers and brass pulls
+ box(6.95,.75,-7.45,1.05,1.35,.62,0x3b251b,{solid:false,tex:'wood'});
+ box(6.95,1.46,-7.45,1.16,.09,.72,0x68452d,{solid:false});
+ for(const y of [.62,.98]){box(6.4,y,-7.115,.42,.27,.055,0x513322,{solid:false});addSphere(6.4,y,-7.065,.035,agedBrass);}
+ // Framed oil painting and wall panelling
+ box(7.08,2.45,-5.1,.12,1.25,1.75,0x261815,{solid:false});
+ box(7.005,2.45,-5.1,.035,1.08,1.55,0x76604a,{solid:false});
+ box(6.98,2.45,-5.1,.025,.94,1.4,0x27302b,{solid:false});
+ addSphere(6.95,2.62,-5.1,.23,new THREE.MeshStandardMaterial({color:0x171715,roughness:1}));
+ box(7.02,1.1,-6.85,.035,1.9,.055,0x61452f,{solid:false});
+ box(7.02,1.1,-4.0,.035,1.9,.055,0x61452f,{solid:false});
+ // Chandelier: chain, aged brass frame and warm bulbs
+ addCylinder(5.1,3.48,-5.4,.035,.035,.72,agedBrass,10);
+ addCylinder(5.1,3.08,-5.4,.46,.34,.09,agedBrass,16);
+ for(let i=0;i<6;i++){const a=i*Math.PI/3;const x=5.1+Math.cos(a)*.68,z=-5.4+Math.sin(a)*.48;addCylinder((5.1+x)/2,3.12,(z-5.4)/2,.025,.025,.78,agedBrass,8).rotation.z=Math.cos(a)*.65;addSphere(x,2.98,z,.105,new THREE.MeshStandardMaterial({color:0xffd39a,emissive:0xff9b45,emissiveIntensity:1.1}));const bulb=light(x,2.95,z,0xffb76c,.42,4);flickerLights.push({light:bulb,base:.42});}
+ // Dusty curtains and tall window with cool moonlight
+ box(7.02,2.35,-2.85,.12,2.25,1.38,0x252b2b,{solid:false});
+ for(const z of [-3.62,-2.08]){box(6.91,2.3,z,.18,2.45,.22,0x554035,{solid:false});box(6.89,2.3,z+(z<-3?-.13:.13),.2,2.45,.08,0x79604b,{solid:false});}
+ const windowGlow=light(6.75,2.4,-2.85,0x8da9c0,.72,7);
+ // Candle wax, metal holders and small pools of warm light
+ for(const x of [4.15,6.05]){addCylinder(x,1.17,-5.4,.055,.07,.3,porcelain,12);addCylinder(x,1.025,-5.4,.14,.14,.045,agedBrass,16);addSphere(x,1.34,-5.4,.035,new THREE.MeshBasicMaterial({color:0xffb65e}));}
  box(5.1,.8,-5.4,3.5,.18,1.45,0x4b2d1d,{tex:'wood'});
  for(const x of [3.8,6.4])for(const z of [-6,-4.8])box(x,.42,z,.16,.8,.16,0x2b1a14);
  for(const x of [3.5,6.7]){box(x,.55,-5.4,.65,.12,.65,0x3a241b);box(x,.95,-5.75,.65,.9,.12,0x3a241b);}
