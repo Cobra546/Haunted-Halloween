@@ -48,7 +48,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 const $=id=>document.getElementById(id);
-let scene,camera,renderer,controls,clock,flash,entity,entityLight;let started=false,paused=false,flashOn=true,soundOn=true,reducedScares=false,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=100,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,near=null;
+let scene,camera,renderer,controls,clock,flash,entity,entityLight;let started=false,paused=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=100,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,near=null;
 const keys={},objects=[],colliders=[],walls=[];let audioCtx=null;
 function box(x,y,z,w,h,d,color,opts={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:opts.rough??.9,metalness:opts.metal??0}));m.position.set(x,y,z);scene.add(m);if(opts.solid!==false)colliders.push({x,z,w,d});return m}
 function light(x,y,z,color,intensity,range){const l=new THREE.PointLight(color,intensity,range);l.position.set(x,y,z);scene.add(l);return l}
@@ -86,7 +86,7 @@ function build(){
  // town exit beacon
  const beacon=light(0,2,-48,0x9c2a1e,1.2,13);
  // entity shadow figure
- entity=new THREE.Group();const dark=new THREE.MeshStandardMaterial({color:0x030303,roughness:1});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.1,4,8),dark);body.position.y=1.05;entity.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,12,10),dark);head.position.y=1.95;entity.add(head);for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),new THREE.MeshBasicMaterial({color:0xb52a20}));eye.position.set(x,2,-.27);entity.add(eye)}entity.position.set(7,0,-5);scene.add(entity);entity.visible=false;entityLight=light(0,0,0,0x8d1717,0,5);
+ entity=new THREE.Group();const dark=new THREE.MeshStandardMaterial({color:0x030303,roughness:1});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.1,4,8),dark);body.position.y=1.05;entity.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,12,10),dark);head.position.y=1.95;entity.add(head);for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshBasicMaterial({color:0xff1710}));eye.position.set(x,2,-.29);entity.add(eye)}entity.position.set(7,0,-5);scene.add(entity);entity.visible=false;entityLight=light(0,0,0,0x8d1717,0,5);
  // flashlight
  flash=new THREE.SpotLight(0xffe4c4,5,22,Math.PI/7,.35,1.4);camera.add(flash);flash.position.set(0,0,0);flash.target.position.set(0,0,-1);camera.add(flash.target);scene.add(camera);
  controls=new PointerLockControls(camera,document.body);clock=new THREE.Clock();
@@ -95,16 +95,34 @@ function msg(t){$('message').textContent=t;clearTimeout(msg.timer);msg.timer=set
 function scare(text='DON’T LOOK BACK',sub='Something is standing behind you.'){if(scareCooldown>0||!started)return;scareCooldown=reducedScares?38+Math.random()*20:17+Math.random()*15;$('scareText').textContent=text;$('scareSub').textContent=sub;$('scare').style.display='flex';tone(90,.35,'sawtooth');setTimeout(()=>$('scare').style.display='none',850);fear=Math.min(100,fear+(reducedScares?8:17))}
 function tone(freq,duration,type='sine'){if(!soundOn)return;try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.045,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration)}catch(e){}}
 function nightmare(){if(dreamCooldown>0||!started)return;dreamCooldown=85;$('dreamTitle').textContent=['THE ENDLESS HALL','THE WRONG REFLECTION','11:59 PM'][Math.floor(Math.random()*3)];$('dreamText').textContent='The lights go out. The house rearranges itself around you.';$('nightmare').style.display='flex';fear=Math.max(20,fear-12);scene.fog.density=.075;setTimeout(()=>{$('nightmare').style.display='none';scene.fog.density=.035;msg('You wake up. Was that real?');},4200)}
-function interact(){if(!started||paused)return;let best=null,dist=2.8;for(const o of objects){if(!o.mesh.visible)continue;const p=new THREE.Vector3();o.mesh.getWorldPosition(p);const d=p.distanceTo(camera.position);if(d<dist){dist=d;best=o}}if(best)best.action();else msg('Nothing within reach. Keep looking.')}
+function interact(){if(!started||paused)return;if(controlGlitch>0){msg('The controls are not responding...');return}let best=null,dist=2.8;for(const o of objects){if(!o.mesh.visible)continue;const p=new THREE.Vector3();o.mesh.getWorldPosition(p);const d=p.distanceTo(camera.position);if(d<dist){dist=d;best=o}}if(best)best.action();else msg('Nothing within reach. Keep looking.')}
 function collision(pos){for(const c of colliders){if(Math.abs(pos.x-c.x)<c.w/2+.35&&Math.abs(pos.z-c.z)<c.d/2+.35)return true}return false}
 let joy={x:0,y:0},runTouch=false,lookTouch=null;
-function move(dt){let f=(keys.KeyW?1:0)-(keys.KeyS?1:0)+(-joy.y),s=(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x;const len=Math.hypot(f,s);if(len>1){f/=len;s/=len}const sprint=!!(keys.ShiftLeft||runTouch)&&injury<2;const speed=(injury===2?1.05:injury===1?2.1:3.3)*(sprint?1.55:1);const forward=new THREE.Vector3();camera.getWorldDirection(forward);forward.y=0;forward.normalize();const right=new THREE.Vector3().crossVectors(forward,camera.up).normalize();const delta=forward.multiplyScalar(f*speed*dt).add(right.multiplyScalar(s*speed*dt));const next=camera.position.clone().add(delta);if(!collision(next))camera.position.copy(next);camera.position.y=1.65}
-function updateEntity(dt){const p=camera.position,e=entity.position;const d=Math.hypot(p.x-e.x,p.z-e.z);stalkTimer+=dt;if(!entity.visible&&stalkTimer>16+Math.random()*12){entity.visible=true;const a=Math.random()*Math.PI*2;e.set(p.x+Math.cos(a)*8,0,p.z+Math.sin(a)*8);stalkTimer=0;msg('You feel watched.');}
- if(entity.visible){const dx=p.x-e.x,dz=p.z-e.z;const dist=Math.hypot(dx,dz);if(chase>0){e.x+=(dx/(dist||1))*dt*2.7;e.z+=(dz/(dist||1))*dt*2.7;if(dist<1.25){injury=Math.min(2,injury+1);$('injury').textContent=['NONE','MINOR','LEG'][injury];fear=Math.min(100,fear+25);chase=0;entity.visible=false;msg(injury===1?'You were hurt. Movement is slower.':'Your leg is badly hurt. Find a safe place to recover.');tone(65,.5,'triangle');}}else{if(dist>7){e.x+=(dx/(dist||1))*dt*.8;e.z+=(dz/(dist||1))*dt*.8}else if(dist<4){entity.visible=false;scare('IT WAS RIGHT THERE','A shape slips into the dark.');}if(dist<6&&Math.random()<.004){chase=8;msg('RUN. IT HAS SEEN YOU.');tone(120,.6,'sawtooth')}}}
- if(entity.visible){entity.rotation.y=Math.atan2(p.x-e.x,p.z-e.z);entityLight.position.set(e.x,1.5,e.z);entityLight.intensity=.7}else entityLight.intensity=0;
+function move(dt){let f=(keys.KeyW?1:0)-(keys.KeyS?1:0)+(-joy.y),s=(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x;if(controlGlitch>0){if(glitchType===0){f=-f;s=-s}else if(glitchType===1){f=-Math.abs(f);s*=.35}else if(glitchType===2){f*=.25;s=-s}}const len=Math.hypot(f,s);if(len>1){f/=len;s/=len}const sprint=!!(keys.ShiftLeft||runTouch)&&injury<2;const speed=(injury===2?1.05:injury===1?2.1:3.3)*(sprint?1.55:1);const forward=new THREE.Vector3();camera.getWorldDirection(forward);forward.y=0;forward.normalize();const right=new THREE.Vector3().crossVectors(forward,camera.up).normalize();const delta=forward.multiplyScalar(f*speed*dt).add(right.multiplyScalar(s*speed*dt));const next=camera.position.clone().add(delta);if(!collision(next))camera.position.copy(next);camera.position.y=1.65}
+function updateEntity(dt){
+ const p=camera.position,e=entity.position;
+ stalkTimer+=dt;
+ if(!entity.visible&&stalkTimer>13+Math.random()*13){
+  entity.visible=true;
+  const a=Math.random()*Math.PI*2,dist=14+Math.random()*4;
+  e.set(p.x+Math.cos(a)*dist,0,p.z+Math.sin(a)*dist);
+  apparitionTimer=7+Math.random()*5;stalkTimer=0;
+  msg('Something is watching you from far away.');
+  if(controlGlitch<=0){controlGlitch=4+Math.random()*5;glitchType=Math.floor(Math.random()*3);fear=Math.min(100,fear+12);tone(72,.55,'sawtooth');}
+ }
+ if(entity.visible){
+  // The apparition never approaches or physically attacks. It remains at a distance.
+  const dx=p.x-e.x,dz=p.z-e.z,dist=Math.hypot(dx,dz);
+  if(dist<11){const a=Math.atan2(e.z-p.z,e.x-p.x);e.x=p.x+Math.cos(a)*13;e.z=p.z+Math.sin(a)*13;}
+  entity.rotation.y=Math.atan2(p.x-e.x,p.z-e.z);
+  entityLight.position.set(e.x,1.8,e.z);entityLight.intensity=.9;
+  apparitionTimer-=dt;
+  if(apparitionTimer<=0){entity.visible=false;entityLight.intensity=0;msg('The figure has vanished.');}
+ }else entityLight.intensity=0;
 }
-function update(dt){if(!started||paused)return;move(dt);if(flashOn&&battery>0){battery=Math.max(0,battery-dt*.16);flash.intensity=5*(.85+Math.random()*.03)}else flash.intensity=0;if(battery<=0)flashOn=false;$('battery').textContent=Math.floor(battery)+'%';fear=Math.max(0,fear-dt*.25);if(entity?.visible)fear=Math.min(100,fear+dt*1.5);$('fearfill').style.width=fear+'%';$('vignette').style.boxShadow='inset 0 0 '+(110+fear*1.2)+'px '+(28+injury*8)+'px rgba(0,0,0,.95)';if(injury>0&&Math.random()<.0015){injury--; $('injury').textContent=['NONE','MINOR','LEG'][injury];msg('You feel a little steadier.');}
+function update(dt){if(!started||paused)return;if(controlGlitch>0){controlGlitch=Math.max(0,controlGlitch-dt);if(Math.random()<.08){$('message').textContent=['KEYS JAMMED','MOVEMENT CORRUPTED','INPUT SIGNAL LOST'][glitchType]+' · '+Math.ceil(controlGlitch)+'s';}}move(dt);if(flashOn&&battery>0){battery=Math.max(0,battery-dt*.16);flash.intensity=5*(.85+Math.random()*.03)}else flash.intensity=0;if(battery<=0)flashOn=false;$('battery').textContent=Math.floor(battery)+'%';fear=Math.max(0,fear-dt*.25);if(entity?.visible)fear=Math.min(100,fear+dt*1.5);$('fearfill').style.width=fear+'%';$('vignette').style.boxShadow='inset 0 0 '+(110+fear*1.2)+'px '+(28+injury*8)+'px rgba(0,0,0,.95)';if(injury>0&&Math.random()<.0015){injury--; $('injury').textContent=['NONE','MINOR','LEG'][injury];msg('You feel a little steadier.');}
  scareCooldown-=dt;dreamCooldown-=dt;if(fear>(reducedScares?88:68)&&Math.random()<(reducedScares?0.00035:0.0012))nightmare();if(Math.random()<(reducedScares?0.00012:0.00045))scare('BEHIND YOU','A sudden movement in the corner of your eye.');updateEntity(dt);
+ if(controlGlitch<=0&&$('message').textContent.match(/KEYS JAMMED|MOVEMENT CORRUPTED|INPUT SIGNAL LOST/))$('message').textContent='';
  const d=Math.hypot(camera.position.x,camera.position.z+48);if(gateOpen&&d<3){$('goal').textContent='Escape complete';msg('YOU ESCAPED... OR DID YOU?');started=false;controls.unlock();$('nightmare').style.display='flex';$('dreamTitle').textContent='ENDING A — THE ROAD';$('dreamText').textContent='You made it out. In the rear-view mirror, the mansion lights are on.';}
  const prompt=objects.some(o=>{const p=new THREE.Vector3();o.mesh.getWorldPosition(p);return o.mesh.visible&&p.distanceTo(camera.position)<2.8});$('prompt').textContent=prompt?'[ E ] INTERACT':'';renderer.render(scene,camera)}
 function loop(){requestAnimationFrame(loop);const dt=Math.min(clock?.getDelta()||0,.05);update(dt)}
