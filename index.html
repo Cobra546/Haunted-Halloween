@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<div id="intro"><div class="card"><div class="eyebrow">A first-person Halloween horror experience</div><h1>THE CURSED</h1><p><b>HALLOWEEN ESCAPE · 11:59 PM</b></p><p>You wake outside an abandoned mansion. Find the key, decode four difficult mansion locks OR collect the pickaxe and break the side window. Then reach the forest computer and the town gate. Something is watching you, but it cannot kill you.</p><p class="hint">Desktop: WASD move · Mouse look · Shift sprint · F flashlight · E interact · Esc pause<br>Mobile: left joystick move · drag right side to look · INTERACT / LIGHT / ITEMS buttons</p><button id="start">ENTER IF YOU DARE</button><p class="hint">Headphones optional · Sound and visual intensity can be adjusted in pause menu.</p></div></div>
+<div id="intro"><div class="card"><div class="eyebrow">A first-person Halloween horror experience</div><h1>THE CURSED</h1><p><b>HALLOWEEN ESCAPE · 11:59 PM</b></p><p>You wake inside an abandoned mansion. Explore its rooms, find the key, solve the locks or search for another way out. Beyond the grounds, the forest and abandoned town hide more than one presence. The entities can frighten and disorient you, but cannot kill you.</p><p class="hint">Desktop: WASD move · Mouse look · Shift sprint · F flashlight · E interact · Esc pause<br>Mobile: left joystick move · drag right side to look · INTERACT / LIGHT / ITEMS buttons</p><button id="start">ENTER IF YOU DARE</button><p class="hint">Headphones optional · Sound and visual intensity can be adjusted in pause menu.</p></div></div>
 <div id="pause" style="display:none"><div class="card"><div class="eyebrow">Take a breath</div><h2>PAUSED</h2><button id="resume">RESUME</button><button id="sound">SOUND: ON</button><button id="intensity">SCARES: FULL</button><button id="exit">RETURN TO TITLE</button></div></div>
 <div id="inventory"><h2>POCKET ITEMS</h2><div id="inventoryList">No items collected.</div><button id="closeInventory">CLOSE</button></div><div id="scare"><strong id="scareText">DON'T LOOK BACK</strong><p id="scareSub">Something moved in the dark.</p></div>
 <div id="nightmare"><div class="eyebrow">UNSTABLE MEMORY</div><h2 id="dreamTitle">THE ENDLESS HALL</h2><p id="dreamText">The house has changed around you.</p></div>
@@ -24,7 +24,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 const $=id=>document.getElementById(id);
-let scene,camera,renderer,controls,clock,flash,entity,entityLight;let eyeHeight=1.65,currentFloor='GROUND FLOOR';let started=false,paused=false,inventoryOpen=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=1680,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,doorLocks=[false,false,false,false],hasPickaxe=false,hasBasementKey=false,secretPassageOpen=false,near=null;
+let scene,camera,renderer,controls,clock,flash,entity,entityLight;const extraEntities=[];let randomScareTimer=9;let eyeHeight=1.65,currentFloor='GROUND FLOOR';let started=false,paused=false,inventoryOpen=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=1680,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,doorLocks=[false,false,false,false],hasPickaxe=false,hasBasementKey=false,secretPassageOpen=false,near=null;
 const keys={},objects=[],colliders=[],walls=[],flickerLights=[];let audioCtx=null;let woodTexture,stoneTexture;
 function makeSurfaceTexture(base,grain,kind='wood'){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);for(let i=0;i<(kind==='wood'?90:650);i++){const x=Math.random()*256,y=Math.random()*256;g.strokeStyle=grain+(Math.random()*.22).toFixed(2)+')';g.globalAlpha=kind==='wood'?.25:.1;g.lineWidth=kind==='wood'?1+Math.random()*2:1;g.beginPath();if(kind==='wood'){g.moveTo(x,y);g.bezierCurveTo(x+18,y-3,x+35,y+4,x+70,y+Math.random()*3);}else{g.moveTo(x,y);g.lineTo(x+Math.random()*2,y+Math.random()*2);}g.stroke();}g.globalAlpha=1;const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);return t}
 function box(x,y,z,w,h,d,color,opts={}){const map=opts.tex==='wood'?woodTexture:opts.tex==='stone'?stoneTexture:null;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,map,roughness:opts.rough??.9,metalness:opts.metal??0}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);if(opts.solid!==false)colliders.push({x,y,h,z,w,d});return m}
@@ -32,7 +32,7 @@ function light(x,y,z,color,intensity,range){const l=new THREE.PointLight(color,i
 function labelObj(mesh,name,action){objects.push({mesh,name,action})}
 function build(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x55595b);scene.fog=new THREE.FogExp2(0x55595b,.012);woodTexture=makeSurfaceTexture('#493024','rgba(17,8,4,','wood');stoneTexture=makeSurfaceTexture('#292522','rgba(5,5,5,','stone');
- camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,90);camera.position.set(0,1.65,8);
+ camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,90);camera.position.set(0,1.65,-1.15);
  renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.45;document.body.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0xb8c0c5,0x55504b,1.35));scene.add(new THREE.AmbientLight(0x9da5aa,.48));
  const moon=light(-5,9,-8,0x9aa9b8,3.2,42);moon.castShadow=true;moon.shadow.mapSize.set(768,768);
@@ -230,7 +230,14 @@ function build(){
  controls=new PointerLockControls(camera,document.body);clock=new THREE.Clock();
 }
 function msg(t){$('message').textContent=t;clearTimeout(msg.timer);msg.timer=setTimeout(()=>$('message').textContent='',3400)}
-function scare(text='DON’T LOOK BACK',sub='Something is standing behind you.'){if(scareCooldown>0||!started)return;scareCooldown=reducedScares?38+Math.random()*20:17+Math.random()*15;$('scareText').textContent=text;$('scareSub').textContent=sub;$('scare').style.display='flex';tone(90,.35,'sawtooth');setTimeout(()=>$('scare').style.display='none',850);fear=Math.min(100,fear+(reducedScares?8:17))}
+function scare(text='DON’T LOOK BACK',sub='Something is standing behind you.'){
+ if(scareCooldown>0||!started)return;
+ scareCooldown=reducedScares?38+Math.random()*20:17+Math.random()*15;
+ $('scareText').textContent=text;$('scareSub').textContent=sub;
+ $('scare').style.display='flex';tone(90,.35,'sawtooth');
+ setTimeout(()=>$('scare').style.display='none',reducedScares?650:850);
+ fear=Math.min(100,fear+(reducedScares?8:17));
+}
 function tone(freq,duration,type='sine'){if(!soundOn)return;try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.045,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration)}catch(e){}}
 function nightmare(){if(dreamCooldown>0||!started)return;dreamCooldown=85;$('dreamTitle').textContent=['THE ENDLESS HALL','THE WRONG REFLECTION','11:59 PM'][Math.floor(Math.random()*3)];$('dreamText').textContent='The lights go out. The house rearranges itself around you.';$('nightmare').style.display='flex';fear=Math.max(20,fear-12);scene.fog.density=.045;setTimeout(()=>{$('nightmare').style.display='none';scene.fog.density=.012;msg('You wake up. Was that real?');},4200)}
 function interact(){if(!started||paused||inventoryOpen)return;if(controlGlitch>0){msg('The controls are not responding...');return}let best=null,dist=2.8;for(const o of objects){if(!o.mesh.visible)continue;const p=new THREE.Vector3();o.mesh.getWorldPosition(p);const d=p.distanceTo(camera.position);if(d<dist){dist=d;best=o}}if(best)best.action();else msg('Nothing within reach. Keep looking.')}
@@ -259,7 +266,24 @@ function updateEntity(dt){
  }else entityLight.intensity=0;
 }
 function update(dt){if(!started||paused)return;for(const f of flickerLights)f.light.intensity=f.base*(.72+Math.random()*.55);if(controlGlitch>0){document.body.classList.add('glitch');if(inventoryOpen&&Math.random()<.035){inventoryOpen=false;$('inventory').style.display='none';msg('INVENTORY CLOSED BY ITSELF');}controlGlitch=Math.max(0,controlGlitch-dt);if(Math.random()<.08){$('message').textContent=['KEYS JAMMED','MOVEMENT CORRUPTED','INPUT SIGNAL LOST'][glitchType]+' · '+Math.ceil(controlGlitch)+'s';}}if(controlGlitch<=0)document.body.classList.remove('glitch');move(dt);if(flashOn&&battery>0){battery=Math.max(0,battery-dt);flash.intensity=battery<120?7*(.55+Math.random()*.45):7*(.88+Math.sin(performance.now()*.006)*.025)}else flash.intensity=0;if(battery<=0)flashOn=false;const cells=Math.ceil(battery/420);const remaining=Math.ceil(battery%420||(battery>0?420:0));const mm=Math.floor(remaining/60),ss=remaining%60;$('battery').textContent=cells+' CELLS · '+mm+':'+String(ss).padStart(2,'0');fear=Math.max(0,fear-dt*.25);if(entity?.visible)fear=Math.min(100,fear+dt*1.5);$('fearfill').style.width=fear+'%';$('vignette').style.boxShadow='inset 0 0 '+(55+fear*.65)+'px '+(10+injury*3)+'px rgba(0,0,0,.58)';if(injury>0&&Math.random()<.0015){injury--; $('injury').textContent=['NONE','MINOR','LEG'][injury];msg('You feel a little steadier.');}
- scareCooldown-=dt;dreamCooldown-=dt;if(fear>(reducedScares?88:68)&&Math.random()<(reducedScares?0.00035:0.0012))nightmare();if(Math.random()<(reducedScares?0.00012:0.00045))scare('BEHIND YOU','A sudden movement in the corner of your eye.');updateEntity(dt);
+ scareCooldown-=dt;dreamCooldown-=dt;
+ randomScareTimer-=dt;
+ if(fear>(reducedScares?88:68)&&Math.random()<(reducedScares?0.00035:0.0012))nightmare();
+ if(randomScareTimer<=0){
+  randomScareTimer=(reducedScares?28:12)+Math.random()*(reducedScares?24:18);
+  if(Math.random()<(reducedScares?.55:.82)){
+   const events=[
+    ['DON’T TURN AROUND','Footsteps stop the moment you stop moving.'],
+    ['IT’S IN THE WINDOW','A shape just crossed the glass.'],
+    ['RUN','A sudden silhouette flashes at the edge of your vision.'],
+    ['YOU ARE NOT ALONE','A whisper comes from somewhere behind you.'],
+    ['LOOK UP','Something moved above the doorway.'],
+    ['FOUND YOU','The lights flicker, and a face appears for an instant.']
+   ];
+   const ev=events[Math.floor(Math.random()*events.length)];scare(ev[0],ev[1]);
+  }
+ }
+ updateEntity(dt);
  if(controlGlitch<=0&&$('message').textContent.match(/KEYS JAMMED|MOVEMENT CORRUPTED|INPUT SIGNAL LOST/))$('message').textContent='';
  const d=Math.hypot(camera.position.x,camera.position.z+48);if(gateOpen&&d<3){$('goal').textContent='Escape complete';msg('YOU ESCAPED... OR DID YOU?');started=false;controls.unlock();$('nightmare').style.display='flex';$('dreamTitle').textContent='ENDING A — THE ROAD';$('dreamText').textContent='You made it out. In the rear-view mirror, the mansion lights are on.';}
  const prompt=objects.some(o=>{const p=new THREE.Vector3();o.mesh.getWorldPosition(p);return o.mesh.visible&&p.distanceTo(camera.position)<2.8});$('prompt').textContent=prompt?'[ E ] '+(objects.filter(o=>o.mesh.visible).map(o=>({o,p:o.mesh.getWorldPosition(new THREE.Vector3())})).sort((a,b)=>a.p.distanceTo(camera.position)-b.p.distanceTo(camera.position))[0]?.o.name||'INTERACT'):'';$('injury').textContent=currentFloor;renderer.render(scene,camera)}
