@@ -246,7 +246,30 @@ function build(){
  box(0,.015,-18,5.6,.06,19,0x343331,{solid:false});
  for(let side of [-1,1])for(let z=-10;z>=-26;z-=1.8)box(side*3.05,.12,z,.28,.22,.5,0x595348,{solid:false});
  // Forest landmark: weather-beaten ranger cabin, trail marker, stumps and undergrowth.
- box(-5.35,1.45,-16.8,3.25,2.9,2.65,0x33271f,{solid:false,tex:'wood'});box(-5.35,3.05,-16.8,3.65,.28,2.95,0x211b18,{solid:false,tex:'wood'});box(-5.35,1.05,-18.16,.78,2.05,.1,0x4b3022,{solid:false,tex:'wood'});for(let wx of [-6.25,-4.45]){box(wx,1.95,-18.2,.52,.62,.08,0x172126,{solid:false});box(wx,1.95,-18.25,.07,.72,.08,0x6b5844,{solid:false});box(wx,1.95,-18.25,.58,.07,.08,0x6b5844,{solid:false});}for(let i=0;i<9;i++){const stump=new THREE.Mesh(new THREE.CylinderGeometry(.18,.24,.38,7),new THREE.MeshStandardMaterial({color:0x493326,roughness:1}));stump.position.set(-8.5+i*.9,.2,-13.2-(i%3)*2.1);scene.add(stump);}const forestSign=box(2.8,1.1,-13.4,.12,1.8,.12,0x513b2a,{solid:false,tex:'wood'});box(2.8,1.55,-13.4,1.55,.72,.12,0x513b2a,{solid:false,tex:'wood'});labelObj(forestSign,'Forest trail marker',()=>msg('The faded arrow points east: OLD TOWN — 400 metres.'));for(let i=0;i<34;i++){const x=(Math.random()-.5)*13,z=-10-Math.random()*15;const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.35+Math.random()*.32,1),new THREE.MeshStandardMaterial({color:[0x26372a,0x35402c,0x292c24][i%3],roughness:1}));bush.position.set(x,.35,z);bush.scale.y=.65;scene.add(bush);}
+ box(-5.35,1.45,-16.8,3.25,2.9,2.65,0x33271f,{solid:false,tex:'wood'});box(-5.35,3.05,-16.8,3.65,.28,2.95,0x211b18,{solid:false,tex:'wood'});box(-5.35,1.05,-18.16,.78,2.05,.1,0x4b3022,{solid:false,tex:'wood'});for(let wx of [-6.25,-4.45]){box(wx,1.95,-18.2,.52,.62,.08,0x172126,{solid:false});box(wx,1.95,-18.25,.07,.72,.08,0x6b5844,{solid:false});box(wx,1.95,-18.25,.58,.07,.08,0x6b5844,{solid:false});}for(let i=0;i<9;i++){const stump=new THREE.Mesh(new THREE.CylinderGeometry(.18,.24,.38,7),new THREE.MeshStandardMaterial({color:0x493326,roughness:1}));stump.position.set(-8.5+i*.9,.2,-13.2-(i%3)*2.1);scene.add(stump);}const forestSign=box(2.8,1.1,-13.4,.12,1.8,.12,0x513b2a,{solid:false,tex:'wood'});box(2.8,1.55,-13.4,1.55,.72,.12,0x513b2a,{solid:false,tex:'wood'});labelObj(forestSign,'Forest trail marker',()=>msg('The faded arrow points east: OLD TOWN — 400 metres.'));
+// Two abandoned wooden huts tucked beside the forest trail (decorative, solid structures).
+function woodenHut(x,z,scale=1){
+ const w=2.7*scale,h=2.25*scale,d=2.5*scale;
+ // Four timber walls; solid collision prevents walking through the hut.
+ box(x,h/2,z,w,h,.16*scale,0x493024,{tex:'wood'});
+ box(x,h/2,z-d/2+.08*scale,.16*scale,h,d,0x493024,{tex:'wood'});
+ box(x-w/2+.08*scale,h/2,z,.16*scale,h,d,0x493024,{tex:'wood'});
+ box(x+w/2-.08*scale,h/2,z,.16*scale,h,d,0x493024,{tex:'wood'});
+ // Two overlapping pitched roof boards.
+ const roofA=box(x-w*.25,h+.48*scale,z,w*.72,.16*scale,d+.35*scale,0x302018,{tex:'wood'});
+ roofA.rotation.z=-.38;
+ const roofB=box(x+w*.25,h+.48*scale,z,w*.72,.16*scale,d+.35*scale,0x302018,{tex:'wood'});
+ roofB.rotation.z=.38;
+ // Closed plank door and small boarded window.
+ box(x,.88*scale,z-d/2-.10*scale,.72*scale,1.72*scale,.12*scale,0x382319,{tex:'wood'});
+ for(let k=-1;k<=1;k++)box(x+k*.2*scale,.9*scale,z-d/2-.17*scale,.045*scale,1.58*scale,.04*scale,0x62402b,{tex:'wood'});
+ box(x-w*.32,h*.63,z-d/2-.11*scale,.48*scale,.5*scale,.08*scale,0x151d1e,{solid:false});
+ box(x-w*.32,h*.63,z-d/2-.16*scale,.06*scale,.58*scale,.08*scale,0x684a32,{tex:'wood'});
+ box(x-w*.32,h*.63,z-d/2-.16*scale,.55*scale,.06*scale,.08*scale,0x684a32,{tex:'wood'});
+}
+woodenHut(5.15,-20.6,.92);
+woodenHut(-5.65,-23.1,.82);
+for(let i=0;i<34;i++){const x=(Math.random()-.5)*13,z=-10-Math.random()*15;const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.35+Math.random()*.32,1),new THREE.MeshStandardMaterial({color:[0x26372a,0x35402c,0x292c24][i%3],roughness:1}));bush.position.set(x,.35,z);bush.scale.y=.65;scene.add(bush);}
  box(0,1.7,-23,5,.25,.3,0x4a3022,{solid:false});
  box(-2.35,1.2,-23,.2,2.4,.3,0x4a3022,{solid:false});
  box(2.35,1.2,-23,.2,2.4,.3,0x4a3022,{solid:false});
@@ -255,8 +278,8 @@ function build(){
  // // Abandoned town: crooked buildings, boarded windows, street lamps and debris.
  for(let i=0;i<7;i++){
   const side=i%2===0?-1:1,z=-29-Math.floor(i/2)*5.4,x=side*(4.8+(i%3)*.55),h=3.5+(i%3)*.65,w=3.3+(i%2)*.55;
-  box(x,h/2,z,w,h,3.6,i%2?0x292827:0x34302b,{solid:false});
-  const roof=box(x,h+.22,z,w+.35,.35,3.9,0x211d1c,{solid:false});roof.rotation.z=(i%2?.04:-.04);
+  box(x,h/2,z,w,h,3.6,i%2?0x292827:0x34302b,{solid:true});
+  const roof=box(x,h+.22,z,w+.35,.35,3.9,0x211d1c,{solid:true});roof.rotation.z=(i%2?.04:-.04);
   for(const wx of [-.85,.85]){
    const win=box(x+wx,2.1,z-1.83,.62,.9,.07,0x101719,{solid:false});
    box(x+wx,2.1,z-1.88,.08,1,.08,0x57483b,{solid:false});
@@ -275,7 +298,7 @@ function build(){
   }
  }
  // Ruined chapel landmark with bell tower and boarded windows.
- box(5.35,2,-39.2,3.8,4,3.2,0x292724,{solid:false});const chapelRoof=box(5.35,4.12,-39.2,4.1,.35,3.55,0x1c1918,{solid:false});chapelRoof.rotation.z=-.035;box(5.35,5.1,-39.2,.55,2,.55,0x292724,{solid:false});box(5.35,6.25,-39.2,.16,.65,.16,0x5a4a3b,{solid:false});for(let wx of [4.35,6.35]){box(wx,2.75,-40.86,.58,1.25,.08,0x111719,{solid:false});box(wx,2.75,-40.91,.07,1.34,.08,0x675442,{solid:false});box(wx,2.75,-40.91,.66,.07,.08,0x675442,{solid:false});}box(5.35,1.25,-40.9,1,2.5,.12,0x493326,{solid:false});const chapelSign=box(5.35,3.35,-41,1.25,.28,.08,0x59442e,{solid:false});labelObj(chapelSign,'Old chapel sign',()=>msg('The chapel is sealed. The road beyond it is your only way out.'));
+ box(5.35,2,-39.2,3.8,4,3.2,0x292724,{solid:true});const chapelRoof=box(5.35,4.12,-39.2,4.1,.35,3.55,0x1c1918,{solid:true});chapelRoof.rotation.z=-.035;box(5.35,5.1,-39.2,.55,2,.55,0x292724,{solid:false});box(5.35,6.25,-39.2,.16,.65,.16,0x5a4a3b,{solid:false});for(let wx of [4.35,6.35]){box(wx,2.75,-40.86,.58,1.25,.08,0x111719,{solid:false});box(wx,2.75,-40.91,.07,1.34,.08,0x675442,{solid:false});box(wx,2.75,-40.91,.66,.07,.08,0x675442,{solid:false});}box(5.35,1.25,-40.9,1,2.5,.12,0x493326,{solid:false});const chapelSign=box(5.35,3.35,-41,1.25,.28,.08,0x59442e,{solid:false});labelObj(chapelSign,'Old chapel sign',()=>msg('The chapel is sealed. The road beyond it is your only way out.'));
  // Storefront awnings, faded shop signs, utility poles and road rubble.
  for(let i=0;i<5;i++){const side=i%2===0?-1:1,z=-30-i*3.4,x=side*5.1;box(x,2.65,z-1.9,2.8,.22,.65,i%2?0x594033:0x3d4545,{solid:false});const sign=box(x,3.25,z-1.9,1.6,.48,.1,0x29201b,{solid:false});labelObj(sign,'Weathered shop sign',()=>msg('The sign creaks in the wind. Nobody has been here for years.'));}for(let z=-30;z>=-45;z-=5){box(-6.7,3,z,.12,6,.12,0x332b25,{solid:false});box(-6.2,5.8,z,.95,.09,.09,0x332b25,{solid:false});}for(let i=0;i<24;i++){const x=(Math.random()-.5)*6,z=-29-Math.random()*17;const rubble=box(x,.12,z,.18+Math.random()*.35,.18,.16+Math.random()*.3,0x57514a,{solid:false});rubble.rotation.y=Math.random()*2;}
  // Wrecked car, bins and road debris.
