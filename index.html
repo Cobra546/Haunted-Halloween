@@ -8,35 +8,11 @@
 <style>
 :root{--red:#b51f19;--orange:#e87922;--paper:#e9dfce}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505;color:var(--paper);font-family:Georgia,serif}canvas{display:block}#intro,#pause,#scare,#nightmare{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at center,#24100d 0,#090707 55%,#020202 100%);padding:24px}#intro .card,#pause .card{max-width:680px;border:1px solid #793026;background:#090706df;padding:32px;box-shadow:0 0 55px #8c1b1633}h1{font-size:clamp(38px,8vw,78px);letter-spacing:.12em;color:#d64a2e;text-shadow:0 0 20px #b21c17;margin:0 0 12px}p{line-height:1.6;color:#c9bdb0}.eyebrow{letter-spacing:.35em;color:#d58a4e;font:12px Arial;text-transform:uppercase}button{background:#7e211a;color:#fff1e4;border:1px solid #d16a42;padding:14px 24px;font-weight:bold;letter-spacing:.12em;cursor:pointer;margin:8px}button:active{transform:scale(.97)}.hint{font:12px Arial;color:#a99c90}#hud{position:fixed;inset:0;pointer-events:none;z-index:2;font:12px Arial;text-shadow:0 2px 4px #000}#top{position:absolute;top:14px;left:14px;line-height:1.8}#objective{position:absolute;top:14px;right:14px;text-align:right;max-width:48%;color:#e5c7a4}#cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;color:#ddd}#prompt{position:absolute;left:50%;top:57%;transform:translateX(-50%);color:#ffd5aa;text-align:center}#message{position:absolute;left:50%;bottom:13%;transform:translateX(-50%);color:#ffb58d;text-align:center;max-width:85%;font:14px Arial}#fearbar{width:130px;height:5px;background:#342b29;margin-top:4px}#fearfill{height:100%;width:8%;background:#a52a25}#vignette{position:fixed;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 110px 28px #000;transition:box-shadow .4s}#scare,#nightmare{display:none;background:#030202f5;z-index:8;flex-direction:column}#inventory{display:none;position:fixed;inset:15%;z-index:7;background:#090807ee;border:1px solid #98513c;box-shadow:0 0 45px #000;padding:22px;text-align:center;font:14px Arial;color:#e9dfce;backdrop-filter:blur(8px)}#inventory h2{color:#df7545;letter-spacing:.2em}#inventoryList{line-height:2;color:#d6c5b1}body.glitch #inventory{animation:invGlitch .12s steps(2) infinite}@keyframes invGlitch{0%{transform:translateX(0);filter:hue-rotate(0)}50%{transform:translateX(5px);filter:hue-rotate(90deg)}100%{transform:translateX(-4px);filter:hue-rotate(-90deg)}}#scare strong{font-size:clamp(30px,8vw,76px);color:#e9d5c5;text-shadow:0 0 22px #b00;animation:shake .12s infinite}#nightmare h2{font-size:clamp(28px,6vw,58px);color:#bd3025;letter-spacing:.15em}@keyframes shake{0%{transform:translate(2px,-1px)}50%{transform:translate(-2px,2px)}100%{transform:translate(1px,1px)}}#mobile{display:none;position:fixed;inset:auto 0 18px;z-index:4;pointer-events:none;font:12px Arial}#stick{position:absolute;left:20px;bottom:0;width:116px;height:116px;border:1px solid #ffffff66;border-radius:50%;background:#2228;pointer-events:auto;touch-action:none}#nub{position:absolute;width:42px;height:42px;left:36px;top:36px;border-radius:50%;background:#d9b9a477;border:1px solid #fff8}#buttons{position:absolute;right:14px;bottom:4px;display:grid;grid-template-columns:repeat(2,62px);gap:8px;pointer-events:auto}#buttons button{margin:0;padding:13px 4px;font-size:11px;background:#28100ddd;border-color:#a75b45;touch-action:manipulation}#look{position:fixed;right:0;top:0;width:55%;height:72%;z-index:3;touch-action:none}#mobileTip{position:absolute;bottom:125px;left:20px;color:#ffffff99;font-size:10px}@media(max-width:700px){#objective{top:74px;right:14px}#top{max-width:48%}#intro .card{padding:23px}#look{width:55%;height:62%}}@media(pointer:coarse) and (orientation:landscape){#mobile{display:block}#look{width:55%;height:72%}}
 
-#rotateBlock{display:none;position:fixed;inset:0;z-index:30;background:radial-gradient(ellipse at center,#24100d,#050505 75%);color:#f2dfca;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:Arial,sans-serif}
-#rotateBlock .rotateCard{max-width:340px}
-#rotateBlock .phone{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}
-#rotateBlock h2{color:#e87922;letter-spacing:.12em;font-size:24px}
-#rotateBlock p{color:#c9bdb0;line-height:1.6}
-@keyframes turnPhone{0%,20%{transform:rotate(0)}65%,100%{transform:rotate(90deg)}}
-@media(orientation:portrait) and (max-width:900px){#rotateBlock{display:flex}}
-
-/* Landscape-first gameplay polish */
-#rotateBlock{backdrop-filter:blur(5px)}
-#rotateBlock button{min-width:190px}
-@media (orientation:landscape) and (max-height:500px){
- #intro .card{padding:14px 22px;max-width:760px}
- #intro h1{font-size:clamp(30px,7vh,54px);margin-bottom:4px}
- #intro p{margin:6px 0;font-size:13px;line-height:1.35}
- #intro .hint{font-size:10px}
- #intro button{padding:10px 18px}
- #mobile{bottom:8px}
- #stick{width:94px;height:94px}
- #nub{left:27px;top:27px}
- #buttons{grid-template-columns:repeat(2,56px);gap:5px}
- #buttons button{padding:10px 3px}
- #objective{top:8px}
- #top{top:8px}
-}
+@media(pointer:coarse){#mobile{display:block}#look{width:55%;height:70%}}
+@media(max-width:700px){#objective{top:72px;right:10px;font-size:10px}#top{top:10px;left:10px;font-size:10px}#intro .card{padding:18px}#intro p{font-size:13px}#look{width:56%;height:65%}#stick{width:100px;height:100px;left:12px}#nub{left:29px;top:29px}#buttons{right:9px;grid-template-columns:repeat(2,55px);gap:6px}#buttons button{font-size:9px;padding:10px 2px}#mobileTip{left:14px;bottom:106px;font-size:9px}#inventory{inset:12% 8%;padding:14px}}
 </style>
 </head>
 <body>
-<div id="rotateBlock"><div class="rotateCard"><span class="phone">📱</span><h2>ROTATE YOUR DEVICE</h2><p>THE CURSED is designed for landscape mode.<br>Please turn your phone sideways to enter the haunted world.</p><button id="tryLandscape">ENTER LANDSCAPE</button><br><small>If your browser cannot rotate automatically, turn your phone sideways.</small></div></div>
 <div id="intro"><div class="card"><div class="eyebrow">A first-person Halloween horror experience</div><h1>THE CURSED</h1><p><b>HALLOWEEN ESCAPE · 11:59 PM</b></p><p>You wake outside an abandoned mansion. Find the brass key, uncover the computer password and reach the town gate before midnight. Something is watching you. It can hurt you — but it cannot kill you.</p><p class="hint">Desktop: WASD move · Mouse look · Shift sprint · F flashlight · E interact · Esc pause<br>Mobile: left joystick move · drag right side to look · buttons to interact</p><button id="start">ENTER IF YOU DARE</button><p class="hint">Headphones optional · Sound and visual intensity can be adjusted in pause menu.</p></div></div>
 <div id="pause" style="display:none"><div class="card"><div class="eyebrow">Take a breath</div><h2>PAUSED</h2><button id="resume">RESUME</button><button id="sound">SOUND: ON</button><button id="intensity">SCARES: FULL</button><button id="exit">RETURN TO TITLE</button></div></div>
 <div id="inventory"><h2>POCKET ITEMS</h2><div id="inventoryList">No items collected.</div><button id="closeInventory">CLOSE</button></div><div id="scare"><strong id="scareText">DON'T LOOK BACK</strong><p id="scareSub">Something moved in the dark.</p></div>
@@ -68,6 +44,41 @@ function build(){
  // room partitions / hallway
  box(-3,1.5,-2, .25,3,4,0x29201d);box(3,1.5,-2,.25,3,4,0x29201d);
  box(0,-.02,-4,15,.15,10,0x30241e,{solid:false});
+ // mansion rooms and furniture
+
+ // ROOM 1 — LIBRARY: shelves, scattered books and a whispering portrait
+ for(const z of [-6.6,-4.9,-3.2]){
+  box(-6.35,1.35,z,.35,2.7,1.25,0x39251c);
+  for(let row=0;row<4;row++)box(-6.12,.45+row*.48,z,.12,.12,1.05,[0x6b2922,0x8a663a,0x314a43,0x54406c][(row+Math.floor(z*2))&3],{solid:false});
+ }
+ box(-5.25,.55,-5.6,1.1,.12,1.1,0x39251c);box(-5.25,.28,-5.6,.12,.55,.12,0x211712);
+ const portrait=box(-5.9,2.1,-8.42,1.15,1.45,.08,0x38251d,{solid:false});
+ labelObj(portrait,'Whispering portrait',()=>{msg('The portrait eyes seem to follow you. Behind the frame: “THE CLOCK KNOWS THE WAY.”');fear=Math.min(100,fear+5);});
+ const book=box(-4.7,.82,-4.2,.32,.08,.25,0x8a3024,{solid:false});
+ labelObj(book,'Library journal',()=>msg('Journal: “When the house clock strikes twelve, the town forgets your name.”'));
+ // ROOM 2 — DINING ROOM: table, chairs and radio
+ box(5.1,.8,-5.4,3.5,.18,1.45,0x4b2d1d);
+ for(const x of [3.8,6.4])for(const z of [-6,-4.8])box(x,.42,z,.16,.8,.16,0x2b1a14);
+ for(const x of [3.5,6.7]){box(x,.55,-5.4,.65,.12,.65,0x3a241b);box(x,.95,-5.75,.65,.9,.12,0x3a241b);}
+ const radio=box(5.1,1.35,-5.4,.7,.42,.4,0x171b1b,{solid:false});
+ labelObj(radio,'Crackling radio',()=>{msg('Radio: “Do not trust the face in the upstairs mirror. It is not yours.”');tone(110,.4,'square');});
+ for(const x of [4.1,6.1]){light(x,1.35,-5.3,0xff8a35,.35,3);box(x,1.05,-5.3,.09,.35,.09,0xddd0aa,{solid:false});}
+ // ROOM 3 — STUDY: filing cabinet and locked drawer
+ box(-.9,.65,-6.5,1.2,.12,.7,0x33231b);box(-1.35,1.05,-6.5,.12,.8,.12,0x201713);
+ box(1.1,.85,-6.9,.65,1.7,.65,0x28201b);
+ const drawer=box(1.1,.9,-6.48,.5,.32,.05,0x6b4428,{solid:false});
+ labelObj(drawer,'Study drawer',()=>{msg(hasKey?'The drawer is empty. A faded map marks the town gate.':'The drawer is locked. A small brass key might fit.');});
+ // ROOM 4 — STORAGE ROOM: old wardrobe and hidden clue
+ box(-5.2,1.3,-1.8,1.25,2.6,.65,0x291b17);
+ const wardrobe=box(-5.2,1.35,-1.43,1.1,2.45,.08,0x513021,{solid:false});
+ labelObj(wardrobe,'Old wardrobe',()=>msg('Inside hangs a child-sized coat. Its pocket says: “THE WATCHER CANNOT CROSS THE LIGHT.”'));
+ // ROOM 5 — MAIN HALL: grandfather clock and rug
+ box(5.9,1.25,-1.7,.75,2.5,.55,0x3c251a);
+ const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.22,20),new THREE.MeshStandardMaterial({color:0xd2b27a,emissive:0x241508}));
+ clockFace.position.set(5.9,2.05,-1.405);scene.add(clockFace);
+ labelObj(clockFace,'Grandfather clock',()=>{msg('The clock is frozen at 11:59. Its pendulum moves although the hands do not.');tone(55,.7,'triangle');});
+ box(0,.015,-3.2,4.8,.025,2.4,0x4a1716,{solid:false});
+
  // doors and set dressing
  const door=box(0,1.35,-8.35,2.1,2.7,.18,0x4b2518,{solid:false});labelObj(door,'Front door',()=>{if(hasKey){doorOpen=true;door.rotation.y=Math.PI/2;door.position.x=1.05;msg('The mansion door swings open. The forest is waiting.');$('goal').textContent='Find the old computer in the study';}else msg('Locked. Find a brass key inside the entrance hall.');});
  const key= new THREE.Mesh(new THREE.TorusGeometry(.16,.045,8,16),new THREE.MeshStandardMaterial({color:0xd7a94c,metalness:.8}));key.position.set(-2,0.55,-1);key.rotation.x=Math.PI/2;scene.add(key);labelObj(key,'Brass key',()=>{if(!hasKey){hasKey=true;items++;key.visible=false;msg('Brass key collected. The front door may open now.');$('items').textContent=items;}});
@@ -126,37 +137,15 @@ function update(dt){if(!started||paused)return;if(controlGlitch>0){document.body
  const d=Math.hypot(camera.position.x,camera.position.z+48);if(gateOpen&&d<3){$('goal').textContent='Escape complete';msg('YOU ESCAPED... OR DID YOU?');started=false;controls.unlock();$('nightmare').style.display='flex';$('dreamTitle').textContent='ENDING A — THE ROAD';$('dreamText').textContent='You made it out. In the rear-view mirror, the mansion lights are on.';}
  const prompt=objects.some(o=>{const p=new THREE.Vector3();o.mesh.getWorldPosition(p);return o.mesh.visible&&p.distanceTo(camera.position)<2.8});$('prompt').textContent=prompt?'[ E ] INTERACT':'';renderer.render(scene,camera)}
 function loop(){requestAnimationFrame(loop);const dt=Math.min(clock?.getDelta()||0,.05);update(dt)}
-function isPortraitPhone(){return matchMedia('(max-width: 900px) and (orientation: portrait)').matches}
-async function forceLandscapeFromTap(){
- try{
-  if(!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-  if(screen.orientation?.lock) await screen.orientation.lock('landscape');
- }catch(e){/* Manual rotation prompt remains visible when locking is unsupported. */}
- syncOrientation();
-}
-async function requestLandscape(){
- if(!isPortraitPhone() && screen.orientation?.lock){
-  try{await screen.orientation.lock('landscape')}catch(e){}
- } else if(screen.orientation?.lock){
-  try{await screen.orientation.lock('landscape')}catch(e){}
- }
-}
-function syncOrientation(){
- const blocked=isPortraitPhone();
- $('rotateBlock').style.display=blocked?'flex':'none';
- if(blocked && started && !paused){paused=true;controls.unlock();$('pause').style.display='none'}
- if(!blocked && started && paused && $('pause').style.display==='none'){$('pause').style.display='flex'}
-}
-async function start(){if(started||isPortraitPhone())return;await requestLandscape();if(isPortraitPhone())return;started=true;$('intro').style.display='none';$('pause').style.display='none';if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock();tone(180,.12);msg('Find the brass key. The front door is locked.')}
+function start(){if(started)return;started=true;$('intro').style.display='none';$('pause').style.display='none';if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock();tone(180,.12);msg('Find the brass key. The front door is locked.')}
 function pause(){if(!started)return;paused=true;controls.unlock();$('pause').style.display='flex'}
-function resume(){if(isPortraitPhone())return;paused=false;$('pause').style.display='none';if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock()}
-$('start').onclick=()=>start();$('tryLandscape').onclick=()=>forceLandscapeFromTap();$('resume').onclick=()=>resume();$('exit').onclick=()=>location.reload();$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='SOUND: '+(soundOn?'ON':'OFF')};$('intensity').onclick=()=>{reducedScares=!reducedScares;$('intensity').textContent='SCARES: '+(reducedScares?'REDUCED':'FULL');msg(reducedScares?'Reduced scare intensity enabled.':'Full horror intensity enabled.')};
+function resume(){paused=false;$('pause').style.display='none';if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock()}
+$('start').onclick=()=>start();$('resume').onclick=()=>resume();$('exit').onclick=()=>location.reload();$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='SOUND: '+(soundOn?'ON':'OFF')};$('intensity').onclick=()=>{reducedScares=!reducedScares;$('intensity').textContent='SCARES: '+(reducedScares?'REDUCED':'FULL');msg(reducedScares?'Reduced scare intensity enabled.':'Full horror intensity enabled.')};
 document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyI'){if(controlGlitch>0){msg('INVENTORY SIGNAL LOST');$('inventory').style.display='none';inventoryOpen=false;}else{inventoryOpen=!inventoryOpen;$('inventory').style.display=inventoryOpen?'block':'none';$('inventoryList').textContent=[hasKey?'Brass key':'',hasNote?'Torn note (password 1031)':''].filter(Boolean).join(' · ')||'No items collected.';}}if(e.code==='KeyE')interact();if(e.code==='KeyF'){flashOn=!flashOn;if(flashOn&&battery<2)msg('The flashlight battery is empty.')}if(e.code==='Escape'&&started&&!paused)pause()});document.addEventListener('keyup',e=>keys[e.code]=false);
 $('mInteract').onclick=interact;$('closeInventory').onclick=()=>{inventoryOpen=false;$('inventory').style.display='none'};$('mLight').onclick=()=>flashOn=!flashOn;$('mRun').ontouchstart=e=>{runTouch=true};$('mRun').ontouchend=e=>{runTouch=false};$('mPause').onclick=()=>paused?resume():pause();
 const stick=$('stick'),nub=$('nub');stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);stick.onpointermove=ev=>{const r=stick.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.max(1,Math.hypot(dx,dy));joy.x=Math.max(-1,Math.min(1,dx/m));joy.y=Math.max(-1,Math.min(1,dy/m));nub.style.transform='translate('+joy.x*34+'px,'+joy.y*34+'px)'};});stick.addEventListener('pointerup',()=>{joy={x:0,y:0};nub.style.transform='translate(0,0)';stick.onpointermove=null});
 $('look').addEventListener('pointerdown',e=>{if(!started||paused)return;lookTouch={x:e.clientX,y:e.clientY};$('look').setPointerCapture(e.pointerId)});$('look').addEventListener('pointermove',e=>{if(!lookTouch||!started||paused)return;const dx=e.clientX-lookTouch.x,dy=e.clientY-lookTouch.y;camera.rotation.order='YXZ';camera.rotation.y-=dx*.004;camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x-dy*.004));lookTouch={x:e.clientX,y:e.clientY}});$('look').addEventListener('pointerup',()=>lookTouch=null);
-addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);syncOrientation()});
-addEventListener('orientationchange',()=>setTimeout(syncOrientation,250));
+addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 build();loop();
 </script>
 </body></html>
