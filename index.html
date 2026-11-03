@@ -30,7 +30,7 @@ body.scareFlash #vignette{background:rgba(135,15,12,.16);box-shadow:inset 0 0 10
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 const $=id=>document.getElementById(id);
-let scene,camera,renderer,controls,clock,flash,entity,entityLight;const extraEntities=[];let randomScareTimer=9;let eyeHeight=1.65,currentFloor='GROUND FLOOR';let started=false,paused=false,inventoryOpen=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=false,gateOpen=false,injury=0,fear=8,battery=1680,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,doorLocks=[false,false,false,false],hasPickaxe=false,hasBasementKey=false,secretPassageOpen=false,near=null;
+let scene,camera,renderer,controls,clock,flash,entity,entityLight;const extraEntities=[];let randomScareTimer=9;let eyeHeight=1.65,currentFloor='GROUND FLOOR';let started=false,paused=false,inventoryOpen=false,flashOn=true,soundOn=true,reducedScares=false,controlGlitch=0,glitchType=0,apparitionTimer=0,hasKey=false,hasNote=false,computerSolved=true,gateOpen=true,injury=0,fear=8,battery=1680,items=0,scareCooldown=0,dreamCooldown=0,chase=0,stalkTimer=0,doorOpen=false,doorLocks=[false,false,false,false],hasPickaxe=false,hasBasementKey=false,secretPassageOpen=false,near=null;
 const keys={},objects=[],colliders=[],walls=[],flickerLights=[];let audioCtx=null;let woodTexture,stoneTexture;
 function makeSurfaceTexture(base,grain,kind='wood'){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);for(let i=0;i<(kind==='wood'?90:650);i++){const x=Math.random()*256,y=Math.random()*256;g.strokeStyle=grain+(Math.random()*.22).toFixed(2)+')';g.globalAlpha=kind==='wood'?.25:.1;g.lineWidth=kind==='wood'?1+Math.random()*2:1;g.beginPath();if(kind==='wood'){g.moveTo(x,y);g.bezierCurveTo(x+18,y-3,x+35,y+4,x+70,y+Math.random()*3);}else{g.moveTo(x,y);g.lineTo(x+Math.random()*2,y+Math.random()*2);}g.stroke();}g.globalAlpha=1;const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);return t}
 function box(x,y,z,w,h,d,color,opts={}){const map=opts.tex==='wood'?woodTexture:opts.tex==='stone'?stoneTexture:null;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,map,roughness:opts.rough??.9,metalness:opts.metal??0}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);if(opts.solid!==false)colliders.push({x,y,h,z,w,d});return m}
@@ -224,22 +224,64 @@ function build(){
  const passageDoor=box(-7.02,-1.2,-2,.08,2.4,1.25,0x211714,{solid:false});labelObj(passageDoor,'Secret passage door',()=>{if(secretPassageOpen){passageDoor.visible=false;camera.position.set(-8.1,eyeHeight,-2);msg('You squeeze into the narrow passage beneath the mansion.');}else msg('A seamless wall. There must be a hidden latch nearby.');});
  box(-9.8,-3.25,-2,5.2,.18,1.5,0x211c19,{solid:false});box(-9.8,-1.1,-1.15,5.2,4,.18,0x211b1a);box(-9.8,-1.1,-2.85,5.2,4,.18,0x211b1a);const secretExit=box(-12.25,-1.35,-2,.12,2.2,1.2,0x30251f,{solid:false});labelObj(secretExit,'Secret passage exit',()=>{if(secretPassageOpen){currentFloor='GROUND FLOOR';eyeHeight=1.65;camera.position.set(-10.5,eyeHeight,-2);msg('You emerge from the hidden tunnel into the forest.');}else msg('The tunnel is blocked by a hidden mechanism.');});
  // doors and set dressing
- const door=box(0,1.35,-8.35,2.1,2.7,.18,0x4b2518,{solid:false});const doorBlock={x:0,y:1.35,h:2.7,z:-8.35,w:2.1,d:.35};colliders.push(doorBlock);labelObj(door,'Four-lock mansion exit',()=>{if(!hasKey){msg('Four heavy locks. Find the brass key and decode all four clues hidden around the mansion.');return;}if(doorLocks.every(Boolean)){doorOpen=true;const blockIndex=colliders.indexOf(doorBlock);if(blockIndex>=0)colliders.splice(blockIndex,1);door.rotation.y=Math.PI/2;door.position.x=1.05;msg('All four locks release. The main exit opens into the forest.');$('goal').textContent='Find the cursed computer in the forest';}else msg('The door is sealed. '+doorLocks.filter(Boolean).length+'/4 locks opened. Search every room.');});const lockCodes=['2411','1107','1934','0527'];for(let i=0;i<4;i++){const lk=box(-.72+i*.48,1.45,-8.22,.22,.34,.12,0x9b773f,{solid:false,metal:.8});labelObj(lk,'Mansion lock '+(i+1),()=>{if(!hasKey){msg('The lock plates are jammed. Find the brass key first.');return;}if(doorLocks[i]){msg('Lock '+(i+1)+' is already open.');return;}const answer=window.prompt('MANSION LOCK '+(i+1)+' / 4\nEnter the four-digit code:');if(answer===null)return;if(answer.trim()===lockCodes[i]){doorLocks[i]=true;lk.material.color.set(0x4f9b68);msg('Lock '+(i+1)+' opened. '+doorLocks.filter(Boolean).length+'/4 complete.');}else{msg('Wrong code. The lock clicks shut again.');fear=Math.min(100,fear+5);tone(65,.25,'square');}});}
+ const door=box(0,1.35,-8.35,2.1,2.7,.18,0x4b2518,{solid:false});const doorBlock={x:0,y:1.35,h:2.7,z:-8.35,w:2.1,d:.35};colliders.push(doorBlock);labelObj(door,'Four-lock mansion exit',()=>{if(!hasKey){msg('Four heavy locks. Find the brass key and decode all four clues hidden around the mansion.');return;}if(doorLocks.every(Boolean)){doorOpen=true;const blockIndex=colliders.indexOf(doorBlock);if(blockIndex>=0)colliders.splice(blockIndex,1);door.rotation.y=Math.PI/2;door.position.x=1.05;msg('All four locks release. The main exit opens into the forest.');$('goal').textContent='Follow the forest trail to the abandoned town';}else msg('The door is sealed. '+doorLocks.filter(Boolean).length+'/4 locks opened. Search every room.');});const lockCodes=['2411','1107','1934','0527'];for(let i=0;i<4;i++){const lk=box(-.72+i*.48,1.45,-8.22,.22,.34,.12,0x9b773f,{solid:false,metal:.8});labelObj(lk,'Mansion lock '+(i+1),()=>{if(!hasKey){msg('The lock plates are jammed. Find the brass key first.');return;}if(doorLocks[i]){msg('Lock '+(i+1)+' is already open.');return;}const answer=window.prompt('MANSION LOCK '+(i+1)+' / 4\nEnter the four-digit code:');if(answer===null)return;if(answer.trim()===lockCodes[i]){doorLocks[i]=true;lk.material.color.set(0x4f9b68);msg('Lock '+(i+1)+' opened. '+doorLocks.filter(Boolean).length+'/4 complete.');}else{msg('Wrong code. The lock clicks shut again.');fear=Math.min(100,fear+5);tone(65,.25,'square');}});}
  const key= new THREE.Mesh(new THREE.TorusGeometry(.16,.045,8,16),new THREE.MeshStandardMaterial({color:0xd7a94c,metalness:.8}));key.position.set(-2,0.55,-1);key.rotation.x=Math.PI/2;scene.add(key);labelObj(key,'Brass key',()=>{if(!hasKey){hasKey=true;items++;key.visible=false;msg('Brass key collected. The front door may open now.');$('items').textContent=items;}});
- const note=box(2,.72,-2.5,.55,.06,.42,0xd8c9a8,{solid:false});labelObj(note,'Torn note',()=>{if(!hasNote){hasNote=true;items++;$('items').textContent=items;msg('NOTE: The computer password is 1031. The gate code is hidden in the town.');}else msg('The note reads: 1031.');});
- // Cursed computer in the forest
- box(0,.65,-15.2,2.8,.18,1.2,0x33251e,{solid:false});box(0,1.25,-15.5,1.35,.9,.12,0x111719,{solid:false});const screen=box(0,1.28,-15.42,1.1,.62,.025,0x18332c,{solid:false});screen.material.emissive=new THREE.Color(0x0c5b3c);screen.material.emissiveIntensity=.7;labelObj(screen,'Cursed computer',()=>{if(!hasNote){msg('TERMINAL LOCKED. Find the torn password note in the mansion first.');return;}const code=window.prompt('FOREST TERMINAL\\nEnter the 4-digit password from your note:');if(code===null)return;if(code.trim()==='1031'){computerSolved=true;screen.material.emissive.set(0x39ff8a);msg('ACCESS GRANTED. A distant town gate has powered on.');$('goal').textContent='Find the town gate and its access code';}else{msg('ACCESS DENIED. The terminal flashes: WRONG PASSWORD.');fear=Math.min(100,fear+7);tone(65,.3,'square');}});
- // Breakable side window — alternate mansion escape
+ // Removed the old password note and forest computer puzzle. The forest trail now leads directly to town.\n  // Breakable side window — alternate mansion escape
  const windowGlass=box(7.48,2,-4.5,.08,1.65,2.2,0x304b5a,{solid:false});windowGlass.material.transparent=true;windowGlass.material.opacity=.42;const windowBlock={x:7.48,y:2,h:1.65,z:-4.5,w:.16,d:2.2};colliders.push(windowBlock);labelObj(windowGlass,'Cracked side window',()=>{if(!hasPickaxe){msg('The window is reinforced. Find a pickaxe in the storage room.');return;}windowGlass.visible=false;const wi=colliders.indexOf(windowBlock);if(wi>=0)colliders.splice(wi,1);msg('CRASH! The window breaks. The opening is clear — climb through to reach the forest path.');$('goal').textContent='Reach the cursed computer in the forest';});
  for(const x of [-6]){box(x,2,-3,.08,1.5,.08,0x304b5a,{solid:false});light(x,2,-3,0x8a9cbd,.5,6)}
  // lamps, pumpkins
  for(const z of [-7,-3,1,5]){const l=light(0,2.8,z,0xff6b22,.55,7);const p=new THREE.Mesh(new THREE.SphereGeometry(.35,12,10),new THREE.MeshStandardMaterial({color:0xb94b13,emissive:0x421000}));p.position.set(-5,.35,z);scene.add(p)}
- // forest exit gate
- box(0,1.7,-23,5,.25,.3,0x4a3022,{solid:false});box(-2.35,1.2,-23,.2,2.4,.3,0x4a3022);box(2.35,1.2,-23,.2,2.4,.3,0x4a3022);
- const townClue=box(-4,1.15,-20.5,1.1,.9,.08,0x46352a,{solid:false});labelObj(townClue,'Weathered town notice',()=>msg('A faded notice reads: “The town access code is the year the first house was built: 1927.”'));const gate=box(0,1.2,-23,4.5,2.3,.18,0x30251f,{solid:false});const gateBlock={x:0,y:1.2,h:2.3,z:-23,w:4.5,d:.35};colliders.push(gateBlock);labelObj(gate,'Town gate keypad',()=>{if(!computerSolved){msg('The keypad is dead. Power the town gate from the forest computer first.');return;}const code=window.prompt('TOWN GATE\\nEnter the four-digit town access code:');if(code===null)return;if(code.trim()==='1927'){gateOpen=true;const gi=colliders.indexOf(gateBlock);if(gi>=0)colliders.splice(gi,1);gate.rotation.y=1.2;msg('ACCESS ACCEPTED. The town gate creaks open.');$('goal').textContent='Reach the red beacon beyond the abandoned town';}else{msg('ACCESS DENIED. The keypad emits a low warning tone.');fear=Math.min(100,fear+6);tone(58,.35,'square');}});
- // town silhouettes
- for(let i=0;i<5;i++){const x=(i-2)*5;box(x,2,-31,3.6,4,3,0x17191a,{solid:false});box(x,4.5,-31,4.2,1,3.5,0x211819,{solid:false});light(x,1.8,-29,0xff8a39,.4,5)}
- // town exit beacon
+ // Open forest trail: no keypad or computer gate between the mansion and town.
+ // Weathered timber trail markers and a broken fence frame the path.
+ for(let side of [-1,1]){
+  for(let z=-10;z>=-22;z-=3.2){
+   const x=side*(5.8+Math.sin(z*1.7)*.8);
+   const trunk=box(x,1.45,z,.42,2.9,.42,0x38291f,{solid:false});
+   const crown=new THREE.Mesh(new THREE.ConeGeometry(1.45,3.8,7),new THREE.MeshStandardMaterial({color:0x26382b,roughness:1}));
+   crown.position.set(x,3.7,z);scene.add(crown);
+   if(Math.abs(z)%2<1)light(x,1.1,z,0xc18a50,.12,3.5);
+  }
+ }
+ // Muddy road with subtle edge stones.
+ box(0,.015,-18,5.6,.06,19,0x343331,{solid:false});
+ for(let side of [-1,1])for(let z=-10;z>=-26;z-=1.8)box(side*3.05,.12,z,.28,.22,.5,0x595348,{solid:false});
+ box(0,1.7,-23,5,.25,.3,0x4a3022,{solid:false});
+ box(-2.35,1.2,-23,.2,2.4,.3,0x4a3022,{solid:false});
+ box(2.35,1.2,-23,.2,2.4,.3,0x4a3022,{solid:false});
+ const townClue=box(-4,1.15,-20.5,1.1,.9,.08,0x46352a,{solid:false});
+ labelObj(townClue,'Weathered town notice',()=>msg('The notice is almost unreadable: “No one leaves after the church bell.”'));
+ // // Abandoned town: crooked buildings, boarded windows, street lamps and debris.
+ for(let i=0;i<7;i++){
+  const side=i%2===0?-1:1,z=-29-Math.floor(i/2)*5.4,x=side*(4.8+(i%3)*.55),h=3.5+(i%3)*.65,w=3.3+(i%2)*.55;
+  box(x,h/2,z,w,h,3.6,i%2?0x292827:0x34302b,{solid:false});
+  const roof=box(x,h+.22,z,w+.35,.35,3.9,0x211d1c,{solid:false});roof.rotation.z=(i%2?.04:-.04);
+  for(const wx of [-.85,.85]){
+   const win=box(x+wx,2.1,z-1.83,.62,.9,.07,0x101719,{solid:false});
+   box(x+wx,2.1,z-1.88,.08,1,.08,0x57483b,{solid:false});
+   box(x+wx,2.1,z-1.88,.68,.07,.08,0x57483b,{solid:false});
+  }
+  box(x,1.05,z-1.88,.9,2.1,.12,0x493326,{solid:false});
+  for(let j=0;j<3;j++)box(x+(j-1)*.34,.9,z-1.96,.08,1.7,.08,0x30231d,{solid:false});
+ }
+ // Street lamps and abandoned-town details.
+ for(let z=-29;z>=-46;z-=6){
+  for(let side of [-1,1]){
+   const x=side*3.25;box(x,2.15,z,.09,4.3,.09,0x343333,{solid:false});
+   box(x,4.25,z,.65,.08,.08,0x343333,{solid:false});
+   const bulb=light(x,4.05,z,0xffa45b,.62,8);
+   box(x,4.05,z,.18,.18,.18,0xffc477,{solid:false});
+  }
+ }
+ // Wrecked car, bins and road debris.
+ const car=box(-1.65,.62,-36,2.1,1.05,3.5,0x343b3d,{solid:false});
+ box(-1.65,1.15,-36,.12,.08,3.2,0x171b1d,{solid:false});
+ for(let x of [-2.35,-.95])for(let z of [-37.1,-34.9]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.18,12),new THREE.MeshStandardMaterial({color:0x111111}));
+  wheel.rotation.z=Math.PI/2;wheel.position.set(x,.35,z);scene.add(wheel);
+ }
+ box(2.6,.55,-42,.75,1.1,.75,0x353a35,{solid:false});
+ box(2.6,1.15,-42,.82,.12,.82,0x252b28,{solid:false});
+ // // town exit beacon
  const beacon=light(0,2,-48,0x9c2a1e,1.2,13);
  // entity shadow figure
  entity=new THREE.Group();const dark=new THREE.MeshStandardMaterial({color:0x030303,roughness:1});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.1,4,8),dark);body.position.y=1.05;entity.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,12,10),dark);head.position.y=1.95;entity.add(head);for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshBasicMaterial({color:0xff1710}));eye.position.set(x,2,-.29);entity.add(eye)}entity.position.set(7,0,-5);scene.add(entity);entity.visible=false;entityLight=light(0,0,0,0x8d1717,0,5);
@@ -328,14 +370,14 @@ function update(dt){if(!started||paused)return;const dp=dust.geometry.attributes
  }
  updateEntity(dt);
  if(controlGlitch<=0&&$('message').textContent.match(/KEYS JAMMED|MOVEMENT CORRUPTED|INPUT SIGNAL LOST/))$('message').textContent='';
- const d=Math.hypot(camera.position.x,camera.position.z+48);if(gateOpen&&d<3){$('goal').textContent='Escape complete';msg('YOU ESCAPED... OR DID YOU?');started=false;controls.unlock();$('nightmare').style.display='flex';$('dreamTitle').textContent='ENDING A — THE ROAD';$('dreamText').textContent='You made it out. In the rear-view mirror, the mansion lights are on.';}
+ const d=Math.hypot(camera.position.x,camera.position.z+48);if(d<3){$('goal').textContent='Escape complete';msg('YOU ESCAPED... OR DID YOU?');started=false;controls.unlock();$('nightmare').style.display='flex';$('dreamTitle').textContent='ENDING A — THE ROAD';$('dreamText').textContent='You made it out. In the rear-view mirror, the mansion lights are on.';}
  const prompt=objects.some(o=>{const p=new THREE.Vector3();o.mesh.getWorldPosition(p);return o.mesh.visible&&p.distanceTo(camera.position)<2.8});$('prompt').textContent=prompt?'[ E ] '+(objects.filter(o=>o.mesh.visible).map(o=>({o,p:o.mesh.getWorldPosition(new THREE.Vector3())})).sort((a,b)=>a.p.distanceTo(camera.position)-b.p.distanceTo(camera.position))[0]?.o.name||'INTERACT'):'';$('floorLabel').textContent=currentFloor;renderer.render(scene,camera)}
 function loop(){requestAnimationFrame(loop);const dt=Math.min(clock?.getDelta()||0,.05);update(dt)}
 function start(){if(started)return;started=true;$('intro').style.display='none';$('pause').style.display='none';if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{});}if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock();tone(180,.12);msg('Find the brass key. Four mansion locks guard the main exit — or search storage for another way out.')}
 function pause(){if(!started)return;paused=true;controls.unlock();$('pause').style.display='flex'}
 function resume(){paused=false;$('pause').style.display='none';if(innerWidth>700&&!matchMedia('(pointer:coarse)').matches)controls.lock()}
 $('start').onclick=()=>start();$('resume').onclick=()=>resume();$('exit').onclick=()=>location.reload();$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='SOUND: '+(soundOn?'ON':'OFF')};$('intensity').onclick=()=>{reducedScares=!reducedScares;$('intensity').textContent='SCARES: '+(reducedScares?'REDUCED':'FULL');msg(reducedScares?'Reduced scare intensity enabled.':'Full horror intensity enabled.')};
-document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyI'){if(controlGlitch>0){msg('INVENTORY SIGNAL LOST');$('inventory').style.display='none';inventoryOpen=false;}else{inventoryOpen=!inventoryOpen;$('inventory').style.display=inventoryOpen?'block':'none';$('inventoryList').textContent=[hasKey?'Brass key':'',hasNote?'Torn note (password 1031)':'',hasPickaxe?'Pickaxe':'',hasBasementKey?'Iron cellar key':''].filter(Boolean).join(' · ')||'No items collected.';}}if(e.code==='KeyE')interact();if(e.code==='KeyF'){if(battery<=0){flashOn=false;msg('All four flashlight cells are empty.')}else flashOn=!flashOn;}if(e.code==='Escape'&&started&&!paused)pause()});document.addEventListener('keyup',e=>keys[e.code]=false);
+document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyI'){if(controlGlitch>0){msg('INVENTORY SIGNAL LOST');$('inventory').style.display='none';inventoryOpen=false;}else{inventoryOpen=!inventoryOpen;$('inventory').style.display=inventoryOpen?'block':'none';$('inventoryList').textContent=[hasKey?'Brass key':'',hasPickaxe?'Pickaxe':'',hasBasementKey?'Iron cellar key':''].filter(Boolean).join(' · ')||'No items collected.';}}if(e.code==='KeyE')interact();if(e.code==='KeyF'){if(battery<=0){flashOn=false;msg('All four flashlight cells are empty.')}else flashOn=!flashOn;}if(e.code==='Escape'&&started&&!paused)pause()});document.addEventListener('keyup',e=>keys[e.code]=false);
 $('mInteract').onclick=interact;$('mInventory').onclick=()=>{if(controlGlitch>0){msg('INVENTORY SIGNAL LOST');return;}inventoryOpen=!inventoryOpen;$('inventory').style.display=inventoryOpen?'block':'none';$('inventoryList').textContent=[hasKey?'Brass key':'',hasNote?'Torn note (password 1031)':'',hasPickaxe?'Pickaxe':'',hasBasementKey?'Iron cellar key':''].filter(Boolean).join(' · ')||'No items collected.'};$('closeInventory').onclick=()=>{inventoryOpen=false;$('inventory').style.display='none'};$('mLight').onclick=()=>{if(battery<=0){flashOn=false;msg('All four flashlight cells are empty.')}else flashOn=!flashOn};$('mRun').ontouchstart=e=>{runTouch=true};$('mRun').ontouchend=e=>{runTouch=false};$('mPause').onclick=()=>paused?resume():pause();
 const stick=$('stick'),nub=$('nub');stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);stick.onpointermove=ev=>{const r=stick.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.max(1,Math.hypot(dx,dy));joy.x=Math.max(-1,Math.min(1,dx/m));joy.y=Math.max(-1,Math.min(1,dy/m));nub.style.transform='translate('+joy.x*34+'px,'+joy.y*34+'px)'};});stick.addEventListener('pointerup',()=>{joy={x:0,y:0};nub.style.transform='translate(0,0)';stick.onpointermove=null});
 $('look').addEventListener('pointerdown',e=>{if(!started||paused)return;lookTouch={x:e.clientX,y:e.clientY};$('look').setPointerCapture(e.pointerId)});$('look').addEventListener('pointermove',e=>{if(!lookTouch||!started||paused)return;const dx=e.clientX-lookTouch.x,dy=e.clientY-lookTouch.y;camera.rotation.order='YXZ';camera.rotation.y-=dx*.004;camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x-dy*.004));lookTouch={x:e.clientX,y:e.clientY}});$('look').addEventListener('pointerup',()=>lookTouch=null);
