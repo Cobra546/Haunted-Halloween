@@ -15,9 +15,28 @@
 #rotateBlock p{color:#c9bdb0;line-height:1.6}
 @keyframes turnPhone{0%,20%{transform:rotate(0)}65%,100%{transform:rotate(90deg)}}
 @media(orientation:portrait) and (max-width:900px){#rotateBlock{display:flex}}
+
+/* Landscape-first gameplay polish */
+#rotateBlock{backdrop-filter:blur(5px)}
+#rotateBlock button{min-width:190px}
+@media (orientation:landscape) and (max-height:500px){
+ #intro .card{padding:14px 22px;max-width:760px}
+ #intro h1{font-size:clamp(30px,7vh,54px);margin-bottom:4px}
+ #intro p{margin:6px 0;font-size:13px;line-height:1.35}
+ #intro .hint{font-size:10px}
+ #intro button{padding:10px 18px}
+ #mobile{bottom:8px}
+ #stick{width:94px;height:94px}
+ #nub{left:27px;top:27px}
+ #buttons{grid-template-columns:repeat(2,56px);gap:5px}
+ #buttons button{padding:10px 3px}
+ #objective{top:8px}
+ #top{top:8px}
+}
 </style>
 </head>
-<body>\n<div id="rotateBlock"><div class="rotateCard"><span class="phone">📱</span><h2>ROTATE YOUR DEVICE</h2><p>THE CURSED is designed for landscape mode.<br>Please turn your phone sideways to enter the haunted world.</p><button id="tryLandscape">ENTER LANDSCAPE</button><br><small>If your browser cannot rotate automatically, turn your phone sideways.</small></div></div>
+<body>
+<div id="rotateBlock"><div class="rotateCard"><span class="phone">📱</span><h2>ROTATE YOUR DEVICE</h2><p>THE CURSED is designed for landscape mode.<br>Please turn your phone sideways to enter the haunted world.</p><button id="tryLandscape">ENTER LANDSCAPE</button><br><small>If your browser cannot rotate automatically, turn your phone sideways.</small></div></div>
 <div id="intro"><div class="card"><div class="eyebrow">A first-person Halloween horror experience</div><h1>THE CURSED</h1><p><b>HALLOWEEN ESCAPE · 11:59 PM</b></p><p>You wake outside an abandoned mansion. Find the brass key, uncover the computer password and reach the town gate before midnight. Something is watching you. It can hurt you — but it cannot kill you.</p><p class="hint">Desktop: WASD move · Mouse look · Shift sprint · F flashlight · E interact · Esc pause<br>Mobile: left joystick move · drag right side to look · buttons to interact</p><button id="start">ENTER IF YOU DARE</button><p class="hint">Headphones optional · Sound and visual intensity can be adjusted in pause menu.</p></div></div>
 <div id="pause" style="display:none"><div class="card"><div class="eyebrow">Take a breath</div><h2>PAUSED</h2><button id="resume">RESUME</button><button id="sound">SOUND: ON</button><button id="exit">RETURN TO TITLE</button></div></div>
 <div id="scare"><strong id="scareText">DON'T LOOK BACK</strong><p id="scareSub">Something moved in the dark.</p></div>
@@ -44,7 +63,7 @@ function build(){
  box(0,-.18,0,60,.3,60,0x171916,{solid:false});
  for(let i=0;i<18;i++){const t=new THREE.Group();t.position.set((Math.random()-.5)*38,0,-Math.random()*30-5);const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,2.5,6),new THREE.MeshStandardMaterial({color:0x211b17}));trunk.position.y=1.25;t.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.5,4,7),new THREE.MeshStandardMaterial({color:0x101a14}));crown.position.y=3.5;t.add(crown);scene.add(t)}
  // mansion structure
- box(0,2,-9,16,4,1,0x211b1a);box(-7.5,2,-4,1,4,10,0x211b1a);box(7.5,2,-4,1,4,10,0x211b1a);box(0,4.1,-4,16,.4,10,0x191313);
+ box(-4.55,2,-9,6.9,4,1,0x211b1a);box(4.55,2,-9,6.9,4,1,0x211b1a);box(0,3.85,-9,2.2,.3,1,0x211b1a);box(-7.5,2,-4,1,4,10,0x211b1a);box(7.5,2,-4,1,4,10,0x211b1a);box(0,4.1,-4,16,.4,10,0x191313);
  box(-4,1,-4,3,2,.35,0x100d0d);box(4,1,-4,3,2,.35,0x100d0d);
  // room partitions / hallway
  box(-3,1.5,-2, .25,3,4,0x29201d);box(3,1.5,-2,.25,3,4,0x29201d);
@@ -108,6 +127,7 @@ function syncOrientation(){
  const blocked=isPortraitPhone();
  $('rotateBlock').style.display=blocked?'flex':'none';
  if(blocked && started && !paused){paused=true;controls.unlock();$('pause').style.display='none'}
+ if(!blocked && started && paused && $('pause').style.display==='none'){$('pause').style.display='flex'}
 }
 async function start(){if(started||isPortraitPhone())return;await requestLandscape();if(isPortraitPhone())return;started=true;$('intro').style.display='none';$('pause').style.display='none';if(innerWidth>700)controls.lock();tone(180,.12);msg('Find the brass key. The front door is locked.')}
 function pause(){if(!started)return;paused=true;controls.unlock();$('pause').style.display='flex'}
@@ -117,7 +137,8 @@ document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')int
 $('mInteract').onclick=interact;$('mLight').onclick=()=>flashOn=!flashOn;$('mRun').ontouchstart=e=>{runTouch=true};$('mRun').ontouchend=e=>{runTouch=false};$('mPause').onclick=()=>paused?resume():pause();
 const stick=$('stick'),nub=$('nub');stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);stick.onpointermove=ev=>{const r=stick.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.max(1,Math.hypot(dx,dy));joy.x=Math.max(-1,Math.min(1,dx/m));joy.y=Math.max(-1,Math.min(1,dy/m));nub.style.transform='translate('+joy.x*34+'px,'+joy.y*34+'px)'};});stick.addEventListener('pointerup',()=>{joy={x:0,y:0};nub.style.transform='translate(0,0)';stick.onpointermove=null});
 $('look').addEventListener('pointerdown',e=>{if(!started||paused)return;lookTouch={x:e.clientX,y:e.clientY};$('look').setPointerCapture(e.pointerId)});$('look').addEventListener('pointermove',e=>{if(!lookTouch||!started||paused)return;const dx=e.clientX-lookTouch.x,dy=e.clientY-lookTouch.y;camera.rotation.order='YXZ';camera.rotation.y-=dx*.004;camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x-dy*.004));lookTouch={x:e.clientX,y:e.clientY}});$('look').addEventListener('pointerup',()=>lookTouch=null);
-addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);syncOrientation()});
+addEventListener('orientationchange',()=>setTimeout(syncOrientation,250));
 build();loop();
 </script>
 </body></html>
