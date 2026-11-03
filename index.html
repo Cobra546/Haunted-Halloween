@@ -300,7 +300,7 @@ function build(){
  controls=new PointerLockControls(camera,document.body);clock=new THREE.Clock();
 }
 function msg(t){$('message').textContent=t;clearTimeout(msg.timer);msg.timer=setTimeout(()=>$('message').textContent='',3400)}
-function openKeypad(i){activeLock=i;keypadOpen=true;$('keypadTitle').textContent='LOCK '+(i+1)+' / 4';$('keypadHint').textContent=['A dozen, then one, then eleven.','The frozen clock hour, zero, seventh bell.','S, C, D — use their alphabet positions.','The fifth month, then the 27th day.'][i];$('keypadInput').value='';$('keypad').style.display='flex';$('keypadInput').focus();}
+function openKeypad(i){activeLock=i;keypadOpen=true;$('keypadTitle').textContent='LOCK '+(i+1)+' / 4';$('keypadHint').textContent=['Two dozen, then one, then eleven.','The frozen clock hour, zero, seventh bell.','S, C, D — use their alphabet positions.','The fifth month, then the 27th day.'][i];$('keypadInput').value='';$('keypad').style.display='flex';$('keypadInput').focus();}
 function closeKeypad(){keypadOpen=false;activeLock=-1;$('keypad').style.display='none';}
 function submitKeypad(){if(activeLock<0)return;const i=activeLock,answer=$('keypadInput').value.trim();if(answer.length!==4){msg('Enter all four digits.');return;}if(answer===lockCodes[i]){doorLocks[i]=true;lockMeshes[i].material.color.set(0x4f9b68);msg('Lock '+(i+1)+' opened. '+doorLocks.filter(Boolean).length+'/4 complete.');tone(420,.12,'sine');}else{msg('Wrong code. The lock clicks shut again.');fear=Math.min(100,fear+5);tone(65,.25,'square');}closeKeypad();}
 function scare(text='DON’T LOOK BACK',sub='Something is standing behind you.'){
